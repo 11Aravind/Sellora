@@ -7,26 +7,11 @@ import { planFormSchema, type PlanFormInput } from "./schemas";
 import type { ActionResult } from "@/lib/errors";
 import type { Database, Json } from "@/types/database";
 
+import { syncPlanToRazorpay } from "@/lib/billing/razorpay";
+
 type PlanInsert = Database["public"]["Tables"]["plans"]["Insert"];
 type PlanUpdate = Database["public"]["Tables"]["plans"]["Update"];
 
-/**
- * Hook point: Sync plan details to Razorpay when price_paise > 0.
- * Currently a logging stub; implemented in Prompt 06.
- */
-export async function syncPlanToRazorpay(plan: {
-  id?: string;
-  code: string;
-  name: string;
-  price_paise: number;
-  billing_interval: string;
-}): Promise<void> {
-  console.log(
-    "[syncPlanToRazorpay stub] Plan ready for Razorpay sync:",
-    plan.code,
-    `${plan.price_paise / 100} INR / ${plan.billing_interval}`
-  );
-}
 
 /**
  * Creates a new subscription plan with usage limits and marketing features.

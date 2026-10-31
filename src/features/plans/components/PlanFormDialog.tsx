@@ -159,13 +159,23 @@ export function PlanFormDialog({
         </DialogHeader>
 
         {/* Warning if editing a plan with active stores */}
-        {isEditing && storesCount > 0 && (
-          <div className="flex items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3.5 text-amber-700 dark:text-amber-400 text-xs">
-            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-semibold">Notice:</span> This plan currently has{" "}
-              <span className="font-bold underline">{storesCount} store(s)</span> using it.
-              Changes to limits or features apply to existing stores immediately.
+        {isEditing && (
+          <div className="space-y-2">
+            {storesCount > 0 && (
+              <div className="flex items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-amber-700 dark:text-amber-400 text-xs">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-semibold">Notice:</span> This plan currently has{" "}
+                  <span className="font-bold underline">{storesCount} store(s)</span> using it.
+                  Changes to limits or features apply to existing stores immediately.
+                </div>
+              </div>
+            )}
+            <div className="flex items-start gap-3 rounded-lg border border-blue-500/40 bg-blue-500/10 p-3 text-blue-700 dark:text-blue-400 text-xs">
+              <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-blue-500" />
+              <div>
+                <span className="font-semibold">Razorpay Immutability:</span> Modifying the price or billing interval will automatically provision a new Razorpay plan. Existing subscribers keep their grandfathered rate until they change plans.
+              </div>
             </div>
           </div>
         )}

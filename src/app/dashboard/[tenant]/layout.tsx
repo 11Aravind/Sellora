@@ -14,6 +14,7 @@ import { requireUser } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
 import { UserNav } from "@/components/shared/UserNav";
 import { Badge } from "@/components/ui/badge";
+import { SubscriptionBanner } from "@/features/subscriptions/components/SubscriptionBanner";
 
 interface TenantData {
   id: string;
@@ -79,8 +80,23 @@ export default async function TenantDashboardLayout({
     { label: "Settings", href: `/dashboard/${slug}/settings`, icon: Settings },
   ];
 
+  const { data: subData } = await supabase
+    .from("subscriptions")
+    .select("status, trial_ends_at")
+    .eq("tenant_id", tenant.id)
+    .maybeSingle();
+
+  const sub = subData as { status?: string; trial_ends_at?: string | null } | null;
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      {/* Subscription Banner */}
+      <SubscriptionBanner
+        status={sub?.status || "incomplete"}
+        trialEndsAt={sub?.trial_ends_at}
+        tenantSlug={slug}
+      />
+
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur px-6 py-3">
         <div className="flex items-center justify-between">
