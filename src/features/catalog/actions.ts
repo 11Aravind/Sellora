@@ -1,6 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+
+type RevalidateTagFn = (tag: string, profile?: string) => void;
+const revalidateStoreTag = revalidateTag as unknown as RevalidateTagFn;
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser } from "@/features/auth/queries";
@@ -96,6 +99,10 @@ export async function createCategoryAction(
   }
 
   revalidatePath(`/dashboard`);
+  try {
+    revalidateStoreTag(`tenant:${tenantId}:products`);
+    revalidateStoreTag(`tenant:${tenantId}:categories`);
+  } catch {}
   return { ok: true, data: { id: newCat.id } };
 }
 
@@ -157,6 +164,10 @@ export async function updateCategoryAction(
   }
 
   revalidatePath(`/dashboard`);
+  try {
+    revalidateStoreTag(`tenant:${tenantId}:products`);
+    revalidateStoreTag(`tenant:${tenantId}:categories`);
+  } catch {}
   return { ok: true, data: undefined };
 }
 
@@ -181,6 +192,10 @@ export async function deleteCategoryAction(
   }
 
   revalidatePath(`/dashboard`);
+  try {
+    revalidateStoreTag(`tenant:${tenantId}:products`);
+    revalidateStoreTag(`tenant:${tenantId}:categories`);
+  } catch {}
   return { ok: true, data: undefined };
 }
 
@@ -263,6 +278,10 @@ export async function createProductAction(
   }
 
   revalidatePath(`/dashboard`);
+  try {
+    revalidateStoreTag(`tenant:${tenantId}:products`);
+    revalidateStoreTag(`tenant:${tenantId}:categories`);
+  } catch {}
   return { ok: true, data: { id: newProd.id } };
 }
 
@@ -348,6 +367,10 @@ export async function updateProductAction(
   }
 
   revalidatePath(`/dashboard`);
+  try {
+    revalidateStoreTag(`tenant:${tenantId}:products`);
+    revalidateStoreTag(`tenant:${tenantId}:categories`);
+  } catch {}
   return { ok: true, data: undefined };
 }
 
@@ -381,6 +404,10 @@ export async function archiveProductAction(
   }
 
   revalidatePath(`/dashboard`);
+  try {
+    revalidateStoreTag(`tenant:${tenantId}:products`);
+    revalidateStoreTag(`tenant:${tenantId}:categories`);
+  } catch {}
   return { ok: true, data: undefined };
 }
 
@@ -415,6 +442,10 @@ export async function unarchiveProductAction(
   }
 
   revalidatePath(`/dashboard`);
+  try {
+    revalidateStoreTag(`tenant:${tenantId}:products`);
+    revalidateStoreTag(`tenant:${tenantId}:categories`);
+  } catch {}
   return { ok: true, data: undefined };
 }
 
@@ -530,5 +561,9 @@ export async function deleteProductAction(
   }
 
   revalidatePath(`/dashboard`);
+  try {
+    revalidateStoreTag(`tenant:${tenantId}:products`);
+    revalidateStoreTag(`tenant:${tenantId}:categories`);
+  } catch {}
   return { ok: true, data: undefined };
 }

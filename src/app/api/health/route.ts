@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAnonClient } from "@/lib/supabase/anon";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const supabase = createAnonClient();
     const { count, error } = await supabase
       .from("plans")
       .select("*", { count: "exact", head: true });

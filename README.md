@@ -107,7 +107,7 @@ see how it models something like attributes, carts, coupons, shipping). Do not t
 ## 4. Folder structure
 
 ```
-saas-commerce/
+Sellora/
 ├── README.md
 ├── .env.example
 ├── docs/
@@ -171,8 +171,8 @@ a Firebase project (Cloud Messaging) and a Razorpay account (test mode is fine).
 ### Steps
 ```bash
 # 1. scaffold the app (or let Antigravity do it: see prompts/01)
-pnpm create next-app@latest saas-commerce --ts --tailwind --app --src-dir --eslint --use-pnpm
-cd saas-commerce
+pnpm create next-app@latest Sellora --ts --tailwind --app --src-dir --eslint --use-pnpm
+cd Sellora
 
 # 2. copy this kit's supabase/ folder, docs/, prompts/ and .env.example into the project
 

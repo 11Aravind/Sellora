@@ -3,8 +3,8 @@ import { z } from "zod";
 const clientEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().min(1, "NEXT_PUBLIC_APP_URL is required").default("http://localhost:3000"),
   NEXT_PUBLIC_ROOT_DOMAIN: z.string().min(1, "NEXT_PUBLIC_ROOT_DOMAIN is required").default("localhost:3000"),
-  NEXT_PUBLIC_SUPABASE_URL: z.string().min(1, "NEXT_PUBLIC_SUPABASE_URL is required").default("http://127.0.0.1:54321"),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY is required").default("placeholder-anon-key"),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().min(1, "NEXT_PUBLIC_SUPABASE_URL is required").url("NEXT_PUBLIC_SUPABASE_URL must be a valid URL"),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY is required"),
   NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_API_KEY: z.string().optional(),
   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: z.string().optional(),
@@ -15,7 +15,7 @@ const clientEnvSchema = z.object({
 });
 
 const serverEnvSchema = z.object({
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "SUPABASE_SERVICE_ROLE_KEY is required").default("placeholder-service-role-key"),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, "SUPABASE_SERVICE_ROLE_KEY is required"),
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
