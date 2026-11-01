@@ -476,6 +476,35 @@ export type Database = {
           line_total?: number;
         };
       };
+      order_events: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          order_id: string;
+          status: string;
+          note: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          order_id: string;
+          status: string;
+          note?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          order_id?: string;
+          status?: string;
+          note?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+      };
       notification_tokens: {
         Row: {
           id: string;
@@ -569,6 +598,29 @@ export type Database = {
           p_notes?: string | null;
         };
         Returns: string;
+      };
+      cancel_order: {
+        Args: {
+          p_order: string;
+          p_reason?: string | null;
+        };
+        Returns: void;
+      };
+      update_order_status: {
+        Args: {
+          p_order: string;
+          p_status: string;
+          p_note?: string | null;
+        };
+        Returns: void;
+      };
+      update_order_payment_status: {
+        Args: {
+          p_order: string;
+          p_payment_status: string;
+          p_note?: string | null;
+        };
+        Returns: void;
       };
       is_platform_admin: {
         Args: Record<PropertyKey, never>;

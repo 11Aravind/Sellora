@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getStorefrontTenant, getCustomerOrderById } from "@/features/storefront/queries";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
+import { CustomerCancelOrderButton } from "@/features/storefront/components/CustomerCancelOrderButton";
 
 export default async function OrderDetailPage({
   params,
@@ -91,6 +92,7 @@ export default async function OrderDetailPage({
           <Badge variant="secondary" className="text-xs">
             COD Pending
           </Badge>
+          <CustomerCancelOrderButton orderId={order.id} status={order.status} />
         </div>
       </div>
 

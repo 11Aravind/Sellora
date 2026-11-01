@@ -95,12 +95,47 @@ begin
   -- C (other vendor) cannot see B's order
   perform t.as_user(c);
   select count(*) into n from public.orders where tenant_id=ta; if n <> 0 then raise exception 'LEAK orders to other vendor'; end if;
+  perform t.expect_fail(format($q$select public.update_order_status(%L, 'confirmed')$q$, oid), 'FORBIDDEN');
+  perform t.expect_fail(format($q$select public.cancel_order(%L, 'hacker')$q$, oid), 'FORBIDDEN');
+
   -- A sees it
   perform t.as_user(a);
   select count(*) into n from public.orders where tenant_id=ta; if n <> 1 then raise exception 'A cannot see order'; end if;
   raise notice 'PASS order visibility';
   raise notice 'USAGE: %', public.tenant_usage(ta);
   perform t.expect_fail(format($q$select public.tenant_usage(%L)$q$, tc), 'FORBIDDEN');
+
+  -- Test Order Cancellation & Transitions:
+  -- 1. Illegal transition: pending -> delivered must fail
+  perform t.expect_fail(format($q$select public.update_order_status(%L, 'delivered')$q$, oid), 'INVALID_STATE');
+  -- 2. Customer B cancels pending order -> status becomes cancelled, stock restored
+  perform t.as_user(b);
+  perform public.cancel_order(oid, 'Changed my mind');
+  select stock into stk from public.products where id=p1;
+  if stk <> 10 then raise exception 'Restock failed! Expected 10, got %', stk; end if;
+  raise notice 'PASS customer cancel + restock restored p1 to 10';
+  -- 3. Cancelling already cancelled order fails
+  perform t.expect_fail(format($q$select public.cancel_order(%L)$q$, oid), 'INVALID_STATE');
+
+  -- 4. New order to test vendor workflow: pending -> confirmed -> shipped -> delivered
+  perform t.as_user(b);
+  oid := public.place_order(ta, jsonb_build_array(jsonb_build_object('product_id',p1,'quantity',2)), '{"name":"Bob","phone":"999"}'::jsonb);
+  -- Vendor A confirms
+  perform t.as_user(a);
+  perform public.update_order_status(oid, 'confirmed');
+  -- Customer cannot cancel once confirmed
+  perform t.as_user(b);
+  perform t.expect_fail(format($q$select public.cancel_order(%L)$q$, oid), 'FORBIDDEN');
+  -- Vendor A ships
+  perform t.as_user(a);
+  perform public.update_order_status(oid, 'shipped');
+  -- Vendor cannot cancel once shipped
+  perform t.expect_fail(format($q$select public.cancel_order(%L)$q$, oid), 'INVALID_STATE');
+  -- Vendor delivers
+  perform public.update_order_status(oid, 'delivered');
+  -- Further transition fails
+  perform t.expect_fail(format($q$select public.update_order_status(%L, 'shipped')$q$, oid), 'INVALID_STATE');
+  raise notice 'PASS order state machine transitions';
 
   -- anon storefront
   reset role; set local role anon; perform set_config('request.jwt.claim.sub','',true);
