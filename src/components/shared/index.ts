@@ -4,3 +4,4 @@ export * from "./ErrorState";
 export * from "./LoadingSkeleton";
 export * from "./UserNav";
 export * from "./Pagination";
+export * from "./UsageMeter";

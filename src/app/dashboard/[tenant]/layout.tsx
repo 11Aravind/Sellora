@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import {
   CreditCard,
   FolderTree,
@@ -7,11 +7,12 @@ import {
   Package,
   Settings,
   ShoppingCart,
-  Store,
   Users,
 } from "lucide-react";
 import { requireUser } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
+import { getUserTenants } from "@/features/tenants/queries";
+import { StoreSwitcher } from "@/features/tenants/components/StoreSwitcher";
 import { UserNav } from "@/components/shared/UserNav";
 import { Badge } from "@/components/ui/badge";
 import { SubscriptionBanner } from "@/features/subscriptions/components/SubscriptionBanner";
@@ -43,42 +44,49 @@ export default async function TenantDashboardLayout({
 
   const supabase = await createClient();
 
-  // Real authorization in layout: ensure user is a valid member of this tenant
-  const { data: memberData, error } = await supabase
-    .from("tenant_members")
-    .select(`
-      role,
-      tenants!inner (
-        id,
-        slug,
-        name,
-        status,
-        custom_domain
-      )
-    `)
-    .eq("tenants.slug", slug)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // 1. Resolve tenant membership. Non-members -> notFound()
+  const [{ data: memberData, error }, userStores] = await Promise.all([
+    supabase
+      .from("tenant_members")
+      .select(`
+        role,
+        tenants!inner (
+          id,
+          slug,
+          name,
+          status,
+          custom_domain
+        )
+      `)
+      .eq("tenants.slug", slug)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    getUserTenants(user.id),
+  ]);
 
   const tenantMember = memberData as unknown as MemberQueryResult | null;
 
   if (error || !tenantMember || !tenantMember.tenants) {
-    redirect("/dashboard");
+    notFound();
   }
 
   const tenant = tenantMember.tenants;
   const isSuspended = tenant.status === "suspended";
+  const isStaff = tenantMember.role === "staff";
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
 
-  const navItems = [
-    { label: "Overview", href: `/dashboard/${slug}`, icon: LayoutDashboard },
-    { label: "Products", href: `/dashboard/${slug}/products`, icon: Package },
-    { label: "Categories", href: `/dashboard/${slug}/categories`, icon: FolderTree },
-    { label: "Orders", href: `/dashboard/${slug}/orders`, icon: ShoppingCart },
-    { label: "Team", href: `/dashboard/${slug}/team`, icon: Users },
-    { label: "Billing", href: `/dashboard/${slug}/billing`, icon: CreditCard },
-    { label: "Settings", href: `/dashboard/${slug}/settings`, icon: Settings },
+  // Role-aware menu: staff cannot see Team, Billing, or Settings
+  const allNavItems = [
+    { label: "Overview", href: `/dashboard/${slug}`, icon: LayoutDashboard, staffAllowed: true },
+    { label: "Products", href: `/dashboard/${slug}/products`, icon: Package, staffAllowed: true },
+    { label: "Categories", href: `/dashboard/${slug}/categories`, icon: FolderTree, staffAllowed: true },
+    { label: "Orders", href: `/dashboard/${slug}/orders`, icon: ShoppingCart, staffAllowed: true },
+    { label: "Team", href: `/dashboard/${slug}/team`, icon: Users, staffAllowed: false },
+    { label: "Billing", href: `/dashboard/${slug}/billing`, icon: CreditCard, staffAllowed: false },
+    { label: "Settings", href: `/dashboard/${slug}/settings`, icon: Settings, staffAllowed: false },
   ];
+
+  const navItems = allNavItems.filter((item) => (isStaff ? item.staffAllowed : true));
 
   const { data: subData } = await supabase
     .from("subscriptions")
@@ -100,15 +108,8 @@ export default async function TenantDashboardLayout({
       {/* Top Navigation Bar */}
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur px-6 py-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href={`/dashboard/${slug}`} className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-                <Store className="h-4 w-4" />
-              </div>
-              <span className="font-bold tracking-tight text-foreground truncate max-w-[200px]">
-                {tenant.name}
-              </span>
-            </Link>
+          <div className="flex items-center gap-3">
+            <StoreSwitcher currentSlug={slug} stores={userStores} />
 
             <Badge variant={isSuspended ? "destructive" : "outline"} className="text-xs">
               {tenant.status}
@@ -118,9 +119,9 @@ export default async function TenantDashboardLayout({
               href={`http://${slug}.${rootDomain}`}
               target="_blank"
               rel="noreferrer"
-              className="text-xs text-muted-foreground hover:text-primary transition-colors hidden sm:inline-block"
+              className="text-xs text-muted-foreground hover:text-primary transition-colors hidden sm:inline-block font-medium"
             >
-              View Storefront ↗
+              View store ↗
             </a>
           </div>
 
