@@ -1,6 +1,9 @@
 "use server";
 
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { notifyTenant } from "@/features/notifications/send";
 import { getCartHydratedProducts } from "./queries";
 import type { HydratedCartProduct } from "./types";
 import { placeOrderInputSchema, customerAuthSchema, type PlaceOrderInput } from "./schemas";
@@ -96,6 +99,49 @@ export async function placeOrderAction(input: PlaceOrderInput): Promise<ActionRe
       message: "Failed to generate order confirmation. Please check your orders.",
     };
   }
+
+  // Dispatch background notification without delaying the checkout response
+  after(async () => {
+    try {
+      const admin = createAdminClient();
+      const { data: orderData } = await admin
+        .from("orders")
+        .select("id, order_number, total, tenants(slug)")
+        .eq("id", orderId)
+        .maybeSingle();
+
+      if (orderData) {
+        const orderRow = orderData as unknown as {
+          id: string;
+          order_number: string;
+          total: number;
+          tenants: { slug: string } | null;
+        };
+        const tenantSlug = orderRow.tenants?.slug;
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
+        const formattedTotal = new Intl.NumberFormat("en-IN", {
+          style: "currency",
+          currency: "INR",
+          maximumFractionDigits: 0,
+        }).format(Number(orderRow.total || 0));
+
+        const customerName = shipping.fullName || "Customer";
+
+        await notifyTenant({
+          tenantId,
+          roles: ["owner", "admin", "staff"],
+          type: "order.new",
+          title: `New order ${orderRow.order_number}`,
+          body: `${formattedTotal} from ${customerName}`,
+          link: tenantSlug
+            ? `http://${rootDomain}/dashboard/${tenantSlug}/orders/${orderId}`
+            : undefined,
+        });
+      }
+    } catch (err) {
+      console.error("[placeOrderAction] Notification dispatch error:", err);
+    }
+  });
 
   return {
     success: true,

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { verifyWebhookSignature } from "@/lib/billing/razorpay";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { notifyTenant } from "@/features/notifications/send";
 
 export async function POST(request: Request) {
   // 1. Read raw text body for HMAC signature verification
@@ -65,11 +66,16 @@ export async function POST(request: Request) {
   // 2. Find subscription by razorpay_subscription_id using service role
   const { data: subData, error: subErr } = await admin
     .from("subscriptions")
-    .select("id, tenant_id, status")
+    .select("id, tenant_id, status, tenants(slug)")
     .eq("razorpay_subscription_id", rzpSubId)
     .maybeSingle();
 
-  const sub = subData as unknown as { id: string; tenant_id: string; status: string } | null;
+  const sub = subData as unknown as {
+    id: string;
+    tenant_id: string;
+    status: string;
+    tenants: { slug: string } | null;
+  } | null;
 
   if (subErr || !sub) {
     console.warn(
@@ -159,6 +165,17 @@ export async function POST(request: Request) {
             }
           );
         }
+
+        const tenantSlug = sub.tenants?.slug;
+        const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
+        await notifyTenant({
+          tenantId: sub.tenant_id,
+          roles: ["owner"],
+          type: "billing.failed",
+          title: "Subscription Payment Failed",
+          body: "Your subscription renewal payment failed. Please update your payment method to prevent store suspension.",
+          link: tenantSlug ? `http://${rootDomain}/dashboard/${tenantSlug}/billing` : undefined,
+        });
         break;
       }
 

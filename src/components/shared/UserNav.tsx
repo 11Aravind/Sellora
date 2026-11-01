@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { logoutAction } from "@/features/auth/actions";
+import { unregisterNotificationTokenAction } from "@/features/notifications/actions";
 
 interface UserNavProps {
   user: {
@@ -36,6 +37,18 @@ export function UserNav({ user }: UserNavProps) {
 
   const handleLogout = () => {
     startTransition(async () => {
+      try {
+        const storedToken =
+          typeof window !== "undefined"
+            ? localStorage.getItem("sellora_fcm_token")
+            : null;
+        if (storedToken) {
+          await unregisterNotificationTokenAction(storedToken);
+          localStorage.removeItem("sellora_fcm_token");
+        }
+      } catch (err) {
+        console.error("[UserNav] Error unregistering notification token:", err);
+      }
       await logoutAction();
     });
   };

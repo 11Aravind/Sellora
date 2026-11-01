@@ -16,6 +16,12 @@ import { StoreSwitcher } from "@/features/tenants/components/StoreSwitcher";
 import { UserNav } from "@/components/shared/UserNav";
 import { Badge } from "@/components/ui/badge";
 import { SubscriptionBanner } from "@/features/subscriptions/components/SubscriptionBanner";
+import {
+  getUserNotifications,
+  getUnreadNotificationsCount,
+} from "@/features/notifications/queries";
+import { EnableNotifications } from "@/features/notifications/components/EnableNotifications";
+import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 
 interface TenantData {
   id: string;
@@ -88,11 +94,15 @@ export default async function TenantDashboardLayout({
 
   const navItems = allNavItems.filter((item) => (isStaff ? item.staffAllowed : true));
 
-  const { data: subData } = await supabase
-    .from("subscriptions")
-    .select("status, trial_ends_at")
-    .eq("tenant_id", tenant.id)
-    .maybeSingle();
+  const [{ data: subData }, notifications, unreadCount] = await Promise.all([
+    supabase
+      .from("subscriptions")
+      .select("status, trial_ends_at")
+      .eq("tenant_id", tenant.id)
+      .maybeSingle(),
+    getUserNotifications(tenant.id, 20),
+    getUnreadNotificationsCount(tenant.id),
+  ]);
 
   const sub = subData as { status?: string; trial_ends_at?: string | null } | null;
 
@@ -126,6 +136,12 @@ export default async function TenantDashboardLayout({
           </div>
 
           <div className="flex items-center gap-3">
+            <EnableNotifications tenantId={tenant.id} />
+            <NotificationBell
+              notifications={notifications}
+              unreadCount={unreadCount}
+              tenantId={tenant.id}
+            />
             <UserNav
               user={{
                 email: user.email,

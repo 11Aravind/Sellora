@@ -534,6 +534,41 @@ export type Database = {
           last_seen_at?: string;
         };
       };
+      notifications: {
+        Row: {
+          id: string;
+          tenant_id: string | null;
+          user_id: string;
+          type: string;
+          title: string;
+          body: string | null;
+          link: string | null;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id?: string | null;
+          user_id: string;
+          type: string;
+          title: string;
+          body?: string | null;
+          link?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string | null;
+          user_id?: string;
+          type?: string;
+          title?: string;
+          body?: string | null;
+          link?: string | null;
+          read_at?: string | null;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
