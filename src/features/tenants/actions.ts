@@ -4,7 +4,14 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentUser, isPlatformAdmin } from "@/features/auth/queries";
+import { getTenantUsage } from "@/features/tenants/queries";
 import { parseDbError, friendlyMessage, type ActionResult } from "@/lib/errors";
+import {
+  addDomainToVercel,
+  verifyDomainOnVercel,
+  removeDomainFromVercel,
+  isVercelConfigured,
+} from "@/lib/vercel";
 import {
   storeSettingsSchema,
   customDomainSchema,
@@ -195,6 +202,125 @@ export async function updateCustomDomainAction(
   }
 
   revalidatePath(`/dashboard`);
+  return { ok: true, data: undefined };
+}
+
+/**
+ * Verifies domain with Vercel and saves to tenants table if verified.
+ * Strictly verifies plan permission (custom_domain_allowed).
+ */
+export async function verifyAndSaveCustomDomainAction(
+  tenantId: string,
+  domainInput: string
+): Promise<ActionResult<{ verified: boolean }>> {
+  const authCheck = await verifyTenantAdmin(tenantId);
+  if (!authCheck.ok) return authCheck;
+
+  // 1. Check plan limit for custom domain
+  const usageInfo = await getTenantUsage(tenantId);
+  if (!usageInfo.limits.custom_domain) {
+    return {
+      ok: false,
+      code: "PLAN_LIMIT_DOMAIN",
+      message:
+        "Custom domains are not permitted on your subscription plan. Upgrade your plan to use a custom domain.",
+    };
+  }
+
+  // 2. Validate domain syntax
+  const parsed = customDomainSchema.safeParse({ customDomain: domainInput });
+  if (!parsed.success || !parsed.data.customDomain) {
+    return {
+      ok: false,
+      code: "VALIDATION_ERROR",
+      message: parsed.error?.issues[0]?.message || "Invalid domain name.",
+    };
+  }
+
+  const domain = parsed.data.customDomain.toLowerCase().trim();
+
+  // 3. Vercel API check (if configured)
+  if (isVercelConfigured()) {
+    const addRes = await addDomainToVercel(domain);
+    if (!addRes.success) {
+      return {
+        ok: false,
+        code: "VERCEL_ERROR",
+        message: addRes.error || "Failed to register domain with hosting provider.",
+      };
+    }
+
+    const verifyRes = await verifyDomainOnVercel(domain);
+    if (!verifyRes.verified) {
+      return {
+        ok: false,
+        code: "DNS_UNVERIFIED",
+        message:
+          verifyRes.error ||
+          "DNS records not verified yet. Please configure a CNAME record pointing to cname.vercel-dns.com or an A record to 76.76.21.21, wait a few moments, and click Verify again.",
+      };
+    }
+  }
+
+  // 4. Save to database
+  const supabase = await createClient();
+  type TenantUpdate = {
+    update: (vals: Record<string, unknown>) => {
+      eq: (col: string, val: unknown) => Promise<{ error: Error | null }>;
+    };
+  };
+
+  const { error } = await (supabase.from("tenants") as unknown as TenantUpdate)
+    .update({ custom_domain: domain })
+    .eq("id", tenantId);
+
+  if (error) {
+    const code = parseDbError(error);
+    return { ok: false, code, message: friendlyMessage(code) };
+  }
+
+  revalidatePath("/dashboard");
+  return { ok: true, data: { verified: true } };
+}
+
+/**
+ * Removes custom domain from Vercel and clears tenants.custom_domain.
+ */
+export async function removeCustomDomainAction(
+  tenantId: string
+): Promise<ActionResult<void>> {
+  const authCheck = await verifyTenantAdmin(tenantId);
+  if (!authCheck.ok) return authCheck;
+
+  const supabase = await createClient();
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("custom_domain")
+    .eq("id", tenantId)
+    .single();
+
+  const currentDomain = (tenant as { custom_domain: string | null } | null)?.custom_domain;
+
+  if (currentDomain && isVercelConfigured()) {
+    await removeDomainFromVercel(currentDomain);
+  }
+
+  type TenantUpdate = {
+    update: (vals: Record<string, unknown>) => {
+      eq: (col: string, val: unknown) => Promise<{ error: Error | null }>;
+    };
+  };
+
+  const { error } = await (supabase.from("tenants") as unknown as TenantUpdate)
+    .update({ custom_domain: null })
+    .eq("id", tenantId);
+
+  if (error) {
+    const code = parseDbError(error);
+    return { ok: false, code, message: friendlyMessage(code) };
+  }
+
+  revalidatePath("/dashboard");
   return { ok: true, data: undefined };
 }
 

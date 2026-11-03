@@ -1371,3 +1371,54 @@ create policy notifications_update_own on public.notifications
   for update to authenticated
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
+
+
+-- =============================================================================
+-- Migration: 20261104000000_rate_limiting.sql
+-- Goal: PostgreSQL-backed sliding-window rate limiting for auth, orders, and slugs
+-- =============================================================================
+
+create table if not exists public.rate_limit_buckets (
+  key         text primary key,
+  count       int not null default 1,
+  reset_at    timestamptz not null
+);
+
+create index if not exists rate_limit_buckets_reset_idx
+  on public.rate_limit_buckets (reset_at);
+
+alter table public.rate_limit_buckets enable row level security;
+
+create or replace function public.check_rate_limit(
+  p_key text,
+  p_limit int,
+  p_window_seconds int
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_bucket public.rate_limit_buckets;
+  v_now timestamptz := now();
+begin
+  delete from public.rate_limit_buckets
+   where key = p_key
+     and reset_at <= v_now;
+
+  insert into public.rate_limit_buckets (key, count, reset_at)
+  values (p_key, 1, v_now + (p_window_seconds || ' seconds')::interval)
+  on conflict (key) do update
+    set count = public.rate_limit_buckets.count + 1
+  returning * into v_bucket;
+
+  if v_bucket.count > p_limit then
+    return false;
+  end if;
+
+  return true;
+end;
+$$;
+
+grant execute on function public.check_rate_limit(text, int, int) to anon, authenticated, service_role;

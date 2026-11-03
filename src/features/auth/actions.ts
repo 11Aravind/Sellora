@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { parseDbError, friendlyMessage, type ActionResult } from "@/lib/errors";
 import type { Database } from "@/types/database";
 import {
@@ -56,6 +57,18 @@ export async function loginAction(
     };
   }
 
+  const isAllowed = await checkRateLimit("auth:login", parsed.data.email, {
+    limit: 5,
+    windowSeconds: 60,
+  });
+  if (!isAllowed) {
+    return {
+      ok: false,
+      code: "RATE_LIMITED",
+      message: "Too many login attempts. Please wait 60 seconds and try again.",
+    };
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
@@ -83,6 +96,18 @@ export async function signupAction(
       ok: false,
       code: "VALIDATION_ERROR",
       message: parsed.error.issues[0]?.message ?? "Invalid input",
+    };
+  }
+
+  const isAllowed = await checkRateLimit("auth:signup", undefined, {
+    limit: 5,
+    windowSeconds: 60,
+  });
+  if (!isAllowed) {
+    return {
+      ok: false,
+      code: "RATE_LIMITED",
+      message: "Too many registration attempts. Please wait 60 seconds and try again.",
     };
   }
 
@@ -130,6 +155,18 @@ export async function forgotPasswordAction(
       ok: false,
       code: "VALIDATION_ERROR",
       message: parsed.error.issues[0]?.message ?? "Invalid email",
+    };
+  }
+
+  const isAllowed = await checkRateLimit("auth:forgot", parsed.data.email, {
+    limit: 3,
+    windowSeconds: 60,
+  });
+  if (!isAllowed) {
+    return {
+      ok: false,
+      code: "RATE_LIMITED",
+      message: "Too many reset requests. Please wait a minute and try again.",
     };
   }
 
@@ -206,6 +243,17 @@ export async function checkSlugAvailability(
 
   if (RESERVED_SLUGS.has(normalized)) {
     return { available: false, message: "This store link is reserved." };
+  }
+
+  const isAllowed = await checkRateLimit("tenant:slug", undefined, {
+    limit: 30,
+    windowSeconds: 60,
+  });
+  if (!isAllowed) {
+    return {
+      available: false,
+      message: "Too many store link checks. Please wait a moment.",
+    };
   }
 
   try {

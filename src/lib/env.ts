@@ -23,6 +23,9 @@ const serverEnvSchema = z.object({
   FIREBASE_CLIENT_EMAIL: z.string().optional(),
   FIREBASE_PRIVATE_KEY: z.string().optional(),
   CRON_SECRET: z.string().optional(),
+  VERCEL_API_TOKEN: z.string().optional(),
+  VERCEL_PROJECT_ID: z.string().optional(),
+  VERCEL_TEAM_ID: z.string().optional(),
 });
 
 function parseEnv() {
@@ -59,6 +62,9 @@ function parseEnv() {
       FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
       FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
       CRON_SECRET: process.env.CRON_SECRET,
+      VERCEL_API_TOKEN: process.env.VERCEL_API_TOKEN,
+      VERCEL_PROJECT_ID: process.env.VERCEL_PROJECT_ID,
+      VERCEL_TEAM_ID: process.env.VERCEL_TEAM_ID,
     });
 
     if (!serverResult.success) {

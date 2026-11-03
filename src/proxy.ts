@@ -104,8 +104,12 @@ export async function proxy(request: NextRequest) {
   // 3. Root Host Routing
   // ---------------------------------------------------------------------------
 
-  // In production only: redirect /stores/{slug}/... to https://{slug}.{rootDomain}/...
-  if (isProd && pathname.startsWith("/stores/")) {
+  // In production with custom root domain: redirect /stores/{slug}/... to https://{slug}.{rootDomain}/...
+  // Do not redirect on *.vercel.app because Vercel does not support wildcard SSL on vercel.app domains.
+  const canUseWildcardSubdomains =
+    !rootDomain.includes("localhost") && !rootDomain.endsWith(".vercel.app");
+
+  if (isProd && canUseWildcardSubdomains && pathname.startsWith("/stores/")) {
     const parts = pathname.slice("/stores/".length).split("/");
     const slug = parts[0];
     const rest = parts.slice(1).join("/");

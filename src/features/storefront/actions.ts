@@ -4,6 +4,7 @@ import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { notifyTenant } from "@/features/notifications/send";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { getCartHydratedProducts } from "./queries";
 import type { HydratedCartProduct } from "./types";
 import { placeOrderInputSchema, customerAuthSchema, type PlaceOrderInput } from "./schemas";
@@ -48,6 +49,18 @@ export async function placeOrderAction(input: PlaceOrderInput): Promise<ActionRe
       success: false,
       error: "AUTH_REQUIRED",
       message: "Please sign in to complete your order.",
+    };
+  }
+
+  const isAllowed = await checkRateLimit("order:place", user.id, {
+    limit: 10,
+    windowSeconds: 600,
+  });
+  if (!isAllowed) {
+    return {
+      success: false,
+      error: "RATE_LIMITED",
+      message: "Too many orders placed in a short window. Please wait a few minutes before trying again.",
     };
   }
 

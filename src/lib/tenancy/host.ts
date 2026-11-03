@@ -103,6 +103,12 @@ export function parseHost(
     return { kind: "root" };
   }
 
-  // 5. If host does not match root domain or known subdomain patterns, treat as custom domain
+  // 5. Special handling for Vercel deployment domains (*.vercel.app)
+  // Direct access to a vercel.app deployment (e.g. "sellora-bay.vercel.app") is always root platform
+  if (host.endsWith(".vercel.app")) {
+    return { kind: "root" };
+  }
+
+  // 6. If host does not match root domain or known subdomain patterns, treat as custom domain
   return { kind: "custom", domain: host };
 }

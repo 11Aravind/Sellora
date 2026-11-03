@@ -569,6 +569,23 @@ export type Database = {
           created_at?: string;
         };
       };
+      rate_limit_buckets: {
+        Row: {
+          key: string;
+          count: number;
+          reset_at: string;
+        };
+        Insert: {
+          key: string;
+          count?: number;
+          reset_at: string;
+        };
+        Update: {
+          key?: string;
+          count?: number;
+          reset_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
@@ -617,6 +634,14 @@ export type Database = {
             orders_this_month: number;
           };
         };
+      };
+      check_rate_limit: {
+        Args: {
+          p_key: string;
+          p_limit: number;
+          p_window_seconds: number;
+        };
+        Returns: boolean;
       };
       admin_set_tenant_status: {
         Args: {

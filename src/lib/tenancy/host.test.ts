@@ -41,6 +41,13 @@ describe("parseHost", () => {
       }
     });
 
+    it("treats all vercel.app deployment hosts as root", () => {
+      expect(parseHost("sellora-bay.vercel.app", rootDomain)).toEqual({ kind: "root" });
+      expect(parseHost("sellora-bay-git-master.vercel.app:443", rootDomain)).toEqual({
+        kind: "root",
+      });
+    });
+
     it("falls back to root on empty host", () => {
       expect(parseHost("", rootDomain)).toEqual({ kind: "root" });
       expect(parseHost(null, rootDomain)).toEqual({ kind: "root" });

@@ -122,6 +122,17 @@ export function friendlyMessage(code: string, ctx?: { field?: string; limit?: nu
   }
 }
 
+export function isLimitError(code: string): boolean {
+  return [
+    "PLAN_LIMIT_PRODUCTS",
+    "PLAN_LIMIT_STAFF",
+    "PLAN_LIMIT_ORDERS",
+    "PLAN_LIMIT_DOMAIN",
+    "SUBSCRIPTION_INACTIVE",
+    "TENANT_LIMIT",
+  ].includes(code);
+}
+
 export function getErrorMessage(error: unknown): string {
   const code = parseDbError(error);
   if (code !== "UNKNOWN_ERROR") {

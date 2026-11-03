@@ -31,7 +31,8 @@ import {
 } from "../schemas";
 import {
   updateStoreSettingsAction,
-  updateCustomDomainAction,
+  verifyAndSaveCustomDomainAction,
+  removeCustomDomainAction,
 } from "../actions";
 import type { TenantData } from "../types";
 
@@ -146,11 +147,15 @@ export function StoreSettingsForm({
       return;
     }
 
+    const domain = customDomainValue.trim();
+    if (!domain) {
+      toast.error("Please enter a domain name.");
+      return;
+    }
+
     try {
       setIsSavingDomain(true);
-      const res = await updateCustomDomainAction(tenant.id, {
-        customDomain: customDomainValue.trim() || null,
-      });
+      const res = await verifyAndSaveCustomDomainAction(tenant.id, domain);
 
       if (!res.ok) {
         if (res.code === "PLAN_LIMIT_DOMAIN") {
@@ -161,10 +166,30 @@ export function StoreSettingsForm({
         return;
       }
 
-      toast.success("Custom domain configuration updated.");
+      toast.success("Custom domain verified and saved successfully!");
       router.refresh();
     } catch {
-      toast.error("Failed to update custom domain.");
+      toast.error("Failed to verify custom domain.");
+    } finally {
+      setIsSavingDomain(false);
+    }
+  };
+
+  const handleRemoveDomain = async () => {
+    if (!confirm("Are you sure you want to remove this custom domain?")) return;
+
+    try {
+      setIsSavingDomain(true);
+      const res = await removeCustomDomainAction(tenant.id);
+      if (!res.ok) {
+        toast.error(res.message);
+        return;
+      }
+      setCustomDomainValue("");
+      toast.success("Custom domain removed.");
+      router.refresh();
+    } catch {
+      toast.error("Failed to remove custom domain.");
     } finally {
       setIsSavingDomain(false);
     }
@@ -386,16 +411,25 @@ export function StoreSettingsForm({
               </Badge>
             </div>
             <CardDescription className="text-xs">
-              Link your own branded domain to your storefront.
+              Link your own branded domain to your storefront. Default subdomain:{" "}
+              <span className="font-mono font-medium text-foreground">{tenant.slug}.{rootDomain}</span>
             </CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-4">
             <form onSubmit={handleDomainSubmit} className="space-y-3">
               <div className="space-y-1.5">
-                <Label htmlFor="custom-domain" className="text-xs font-semibold">
-                  Domain Name
-                </Label>
+                <div className="flex items-center justify-between max-w-lg">
+                  <Label htmlFor="custom-domain" className="text-xs font-semibold">
+                    Domain Name
+                  </Label>
+                  {tenant.custom_domain && (
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                      <Check className="h-3 w-3" />
+                      <span>Verified & Active</span>
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-col sm:flex-row gap-2 max-w-lg">
                   <Input
                     id="custom-domain"
@@ -417,27 +451,51 @@ export function StoreSettingsForm({
                     ) : (
                       <Check className="h-3.5 w-3.5" />
                     )}
-                    <span>{customDomainAllowed ? "Save Domain" : "Unlock Feature"}</span>
+                    <span>{customDomainAllowed ? "Verify & Save Domain" : "Unlock Feature"}</span>
                   </Button>
+                  {tenant.custom_domain && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleRemoveDomain}
+                      disabled={isSavingDomain}
+                      className="text-xs text-destructive hover:bg-destructive/10"
+                    >
+                      Remove
+                    </Button>
+                  )}
                 </div>
               </div>
             </form>
 
             {/* DNS Instructions Callout */}
-            <div className="rounded-xl border border-border/80 bg-muted/30 p-4 text-xs space-y-2">
+            <div className="rounded-xl border border-border/80 bg-muted/30 p-4 text-xs space-y-3">
               <div className="font-semibold text-foreground flex items-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5 text-primary" />
                 <span>DNS Configuration Instructions</span>
               </div>
               <p className="text-muted-foreground leading-relaxed">
-                To connect your custom domain, create a <strong>CNAME</strong> record at your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.) pointing your custom subdomain to:
+                Configure one of the following DNS records at your domain registrar (Cloudflare, GoDaddy, Namecheap, etc.):
               </p>
-              <div className="p-2.5 rounded-lg bg-background font-mono text-[11px] border border-border/60 text-foreground flex items-center justify-between">
-                <span>{tenant.slug}.{rootDomain}</span>
-                <span className="text-[10px] text-muted-foreground uppercase">Target CNAME</span>
+              <div className="space-y-2">
+                <div className="p-2.5 rounded-lg bg-background font-mono text-[11px] border border-border/60 text-foreground flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-foreground">CNAME Record</span> (for subdomains like <code>shop.brand.com</code>)
+                    <div className="text-[10px] text-muted-foreground">Target: <code>cname.vercel-dns.com</code></div>
+                  </div>
+                  <span className="text-[10px] text-primary uppercase font-bold">Recommended</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-background font-mono text-[11px] border border-border/60 text-foreground flex items-center justify-between">
+                  <div>
+                    <span className="font-bold text-foreground">A Record</span> (for root domains like <code>brand.com</code>)
+                    <div className="text-[10px] text-muted-foreground">Points to: <code>76.76.21.21</code></div>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground uppercase">Apex fallback</span>
+                </div>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                DNS propagation usually takes 5 to 60 minutes. Once propagated, requests to your custom domain will automatically route to your store.
+                After saving the DNS record at your provider, click <strong>Verify & Save Domain</strong> above. DNS propagation usually takes a few minutes.
               </p>
             </div>
           </CardContent>
