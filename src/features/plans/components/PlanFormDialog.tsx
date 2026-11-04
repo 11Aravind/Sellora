@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
@@ -111,7 +111,7 @@ export function PlanFormDialog({
     form.reset(defaultValues);
   }, [defaultValues, form]);
 
-  const watchedValues = form.watch();
+  const watchedValues = useWatch({ control: form.control });
 
   const handleAddFeature = () => {
     if (!newFeatureText.trim()) return;
@@ -328,16 +328,16 @@ export function PlanFormDialog({
                     <div className="space-y-0.5">
                       <div className="text-xs font-medium">Max Products</div>
                       <div className="text-[11px] text-muted-foreground">
-                        {form.watch("maxProducts") === null ? "Unlimited products" : `Capped at ${form.watch("maxProducts")}`}
+                        {watchedValues?.maxProducts === null ? "Unlimited products" : `Capped at ${watchedValues?.maxProducts}`}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {form.watch("maxProducts") !== null && (
+                      {watchedValues?.maxProducts !== null && (
                         <Input
                           type="number"
                           min="1"
                           className="w-24 h-8 text-xs"
-                          value={form.watch("maxProducts") ?? 30}
+                          value={watchedValues?.maxProducts ?? 30}
                           onChange={(e) =>
                             form.setValue("maxProducts", parseInt(e.target.value) || 0)
                           }
@@ -346,7 +346,7 @@ export function PlanFormDialog({
                       )}
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Switch
-                          checked={form.watch("maxProducts") === null}
+                          checked={watchedValues?.maxProducts === null}
                           onCheckedChange={(checked) =>
                             form.setValue("maxProducts", checked ? null : 30)
                           }
@@ -362,16 +362,16 @@ export function PlanFormDialog({
                     <div className="space-y-0.5">
                       <div className="text-xs font-medium">Max Staff Members</div>
                       <div className="text-[11px] text-muted-foreground">
-                        {form.watch("maxStaff") === null ? "Unlimited staff" : `Capped at ${form.watch("maxStaff")}`}
+                        {watchedValues?.maxStaff === null ? "Unlimited staff" : `Capped at ${watchedValues?.maxStaff}`}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {form.watch("maxStaff") !== null && (
+                      {watchedValues?.maxStaff !== null && (
                         <Input
                           type="number"
                           min="1"
                           className="w-24 h-8 text-xs"
-                          value={form.watch("maxStaff") ?? 2}
+                          value={watchedValues?.maxStaff ?? 2}
                           onChange={(e) =>
                             form.setValue("maxStaff", parseInt(e.target.value) || 0)
                           }
@@ -380,7 +380,7 @@ export function PlanFormDialog({
                       )}
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Switch
-                          checked={form.watch("maxStaff") === null}
+                          checked={watchedValues?.maxStaff === null}
                           onCheckedChange={(checked) =>
                             form.setValue("maxStaff", checked ? null : 2)
                           }
@@ -396,16 +396,16 @@ export function PlanFormDialog({
                     <div className="space-y-0.5">
                       <div className="text-xs font-medium">Orders / Month</div>
                       <div className="text-[11px] text-muted-foreground">
-                        {form.watch("maxOrdersPerMonth") === null ? "Unlimited monthly orders" : `Capped at ${form.watch("maxOrdersPerMonth")}`}
+                        {watchedValues?.maxOrdersPerMonth === null ? "Unlimited monthly orders" : `Capped at ${watchedValues?.maxOrdersPerMonth}`}
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      {form.watch("maxOrdersPerMonth") !== null && (
+                      {watchedValues?.maxOrdersPerMonth !== null && (
                         <Input
                           type="number"
                           min="1"
                           className="w-24 h-8 text-xs"
-                          value={form.watch("maxOrdersPerMonth") ?? 100}
+                          value={watchedValues?.maxOrdersPerMonth ?? 100}
                           onChange={(e) =>
                             form.setValue("maxOrdersPerMonth", parseInt(e.target.value) || 0)
                           }
@@ -414,7 +414,7 @@ export function PlanFormDialog({
                       )}
                       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Switch
-                          checked={form.watch("maxOrdersPerMonth") === null}
+                          checked={watchedValues?.maxOrdersPerMonth === null}
                           onCheckedChange={(checked) =>
                             form.setValue("maxOrdersPerMonth", checked ? null : 100)
                           }
@@ -434,7 +434,7 @@ export function PlanFormDialog({
                       </div>
                     </div>
                     <Switch
-                      checked={form.watch("customDomainAllowed")}
+                      checked={!!watchedValues?.customDomainAllowed}
                       onCheckedChange={(checked) =>
                         form.setValue("customDomainAllowed", checked)
                       }
@@ -474,7 +474,7 @@ export function PlanFormDialog({
                   </div>
 
                   <div className="space-y-1.5 max-h-36 overflow-y-auto pt-1">
-                    {(form.watch("features") || []).map((feature, idx) => (
+                    {(watchedValues?.features || []).map((feature, idx) => (
                       <div
                         key={idx}
                         className="flex items-center justify-between rounded-md border border-border/60 bg-muted/40 px-2.5 py-1.5 text-xs"
@@ -504,7 +504,7 @@ export function PlanFormDialog({
                     <Input
                       type="number"
                       className="w-20 h-8 text-xs"
-                      value={form.watch("sortOrder")}
+                      value={watchedValues?.sortOrder ?? 0}
                       onChange={(e) =>
                         form.setValue("sortOrder", parseInt(e.target.value) || 0)
                       }
@@ -515,7 +515,7 @@ export function PlanFormDialog({
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-medium">Active:</span>
                     <Switch
-                      checked={form.watch("isActive")}
+                      checked={!!watchedValues?.isActive}
                       onCheckedChange={(checked) =>
                         form.setValue("isActive", checked)
                       }
@@ -564,7 +564,7 @@ export function PlanFormDialog({
                   <span className="font-bold text-lg text-foreground">
                     {watchedValues.name || "Plan Name"}
                   </span>
-                  {watchedValues.trialDays > 0 && (
+                  {(watchedValues.trialDays ?? 0) > 0 && (
                     <Badge variant="secondary" className="text-[10px]">
                       {watchedValues.trialDays}-Day Free Trial
                     </Badge>

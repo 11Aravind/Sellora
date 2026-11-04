@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2, FolderTree, Sparkles } from "lucide-react";
@@ -57,6 +57,9 @@ export function CategoryDialog({
       sortOrder: category?.sort_order ?? 0,
     },
   });
+
+  const nameValue = useWatch({ control: form.control, name: "name" }) ?? "";
+  const parentIdValue = useWatch({ control: form.control, name: "parentId" }) || "";
 
   React.useEffect(() => {
     if (category) {
@@ -144,7 +147,7 @@ export function CategoryDialog({
               id="cat-name"
               placeholder="e.g. Footwear, Summer Sale"
               className="text-xs"
-              value={form.watch("name")}
+              value={nameValue}
               onChange={handleNameChange}
             />
             {form.formState.errors.name && (
@@ -194,7 +197,7 @@ export function CategoryDialog({
             <select
               id="cat-parent"
               className="w-full text-xs rounded-md border border-input bg-background px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              value={form.watch("parentId") || ""}
+              value={parentIdValue}
               onChange={(e) => form.setValue("parentId", e.target.value || null)}
             >
               <option value="">None (Top-Level Category)</option>

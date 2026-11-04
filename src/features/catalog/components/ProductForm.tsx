@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2, ArrowLeft, Sparkles, Check, Package } from "lucide-react";
@@ -77,6 +77,10 @@ export function ProductForm({
       images: [],
     },
   });
+
+  const productName = useWatch({ control: form.control, name: "name" }) ?? "";
+  const categoryIdValue = useWatch({ control: form.control, name: "categoryId" }) || "";
+  const trackInventoryValue = useWatch({ control: form.control, name: "trackInventory" }) ?? true;
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -278,7 +282,7 @@ export function ProductForm({
                     id="prod-name"
                     placeholder="e.g. Classic Organic Cotton Tee"
                     className="text-xs"
-                    value={form.watch("name")}
+                    value={productName}
                     onChange={handleNameChange}
                   />
                   {form.formState.errors.name && (
@@ -447,7 +451,7 @@ export function ProductForm({
                   <select
                     id="prod-cat"
                     className="w-full text-xs rounded-md border border-input bg-background px-3 py-2 text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                    value={form.watch("categoryId") || ""}
+                    value={categoryIdValue}
                     onChange={(e) => form.setValue("categoryId", e.target.value || null)}
                   >
                     <option value="">Uncategorized</option>
@@ -487,13 +491,13 @@ export function ProductForm({
                     <div className="text-[11px] text-muted-foreground">Enforce quantity limits</div>
                   </div>
                   <Switch
-                    checked={form.watch("trackInventory")}
+                    checked={trackInventoryValue}
                     onCheckedChange={(checked) => form.setValue("trackInventory", checked)}
                   />
                 </div>
 
                 {/* Stock Quantity */}
-                {form.watch("trackInventory") && (
+                {trackInventoryValue && (
                   <div className="space-y-1.5">
                     <Label htmlFor="prod-stock" className="text-xs font-semibold">
                       Stock Quantity

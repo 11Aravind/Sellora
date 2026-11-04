@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import {
@@ -72,6 +72,8 @@ export function StoreSettingsForm({
       address: tenant.settings.address || "",
     },
   });
+
+  const primaryColor = useWatch({ control: form.control, name: "primaryColor" }) ?? "#0f172a";
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -310,7 +312,7 @@ export function StoreSettingsForm({
                   <input
                     type="color"
                     className="h-9 w-9 rounded-md border border-input cursor-pointer bg-transparent"
-                    value={form.watch("primaryColor")}
+                    value={primaryColor}
                     onChange={(e) => form.setValue("primaryColor", e.target.value)}
                   />
                   <Input
