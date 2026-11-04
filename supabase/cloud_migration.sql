@@ -22,7 +22,7 @@ $$;
 -- -----------------------------------------------------------------------------
 -- 2. Identity: profiles + platform (super) admins
 -- -----------------------------------------------------------------------------
-create table public.profiles (
+create table if not exists public.profiles (
   id          uuid primary key references auth.users (id) on delete cascade,
   full_name   text,
   phone       text,
@@ -33,7 +33,7 @@ create table public.profiles (
 
 -- Super admins live in their own table (never a flag users can edit).
 -- Add one with:  insert into platform_admins (user_id) select id from auth.users where email = 'you@example.com';
-create table public.platform_admins (
+create table if not exists public.platform_admins (
   user_id     uuid primary key references auth.users (id) on delete cascade,
   created_at  timestamptz not null default now()
 );
@@ -66,7 +66,7 @@ create trigger profiles_updated_at
 -- -----------------------------------------------------------------------------
 -- 3. Plans (managed by super admin). NULL limit = unlimited.
 -- -----------------------------------------------------------------------------
-create table public.plans (
+create table if not exists public.plans (
   id                     uuid primary key default gen_random_uuid(),
   code                   text not null unique check (code ~ '^[a-z0-9_-]{2,40}$'),
   name                   text not null,
@@ -95,7 +95,7 @@ create trigger plans_updated_at
 -- -----------------------------------------------------------------------------
 -- 4. Tenants (a vendor's store) + members
 -- -----------------------------------------------------------------------------
-create table public.tenants (
+create table if not exists public.tenants (
   id             uuid primary key default gen_random_uuid(),
   slug           text not null unique
                    check (slug ~ '^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$'),
@@ -111,13 +111,13 @@ create table public.tenants (
   updated_at     timestamptz not null default now()
 );
 
-create index tenants_owner_idx on public.tenants (owner_id);
+create index if not exists tenants_owner_idx on public.tenants (owner_id);
 
 create trigger tenants_updated_at
   before update on public.tenants
   for each row execute function public.set_updated_at();
 
-create table public.tenant_members (
+create table if not exists public.tenant_members (
   tenant_id   uuid not null references public.tenants (id) on delete cascade,
   user_id     uuid not null references auth.users (id) on delete cascade,
   role        text not null check (role in ('owner', 'admin', 'staff')),
@@ -125,12 +125,12 @@ create table public.tenant_members (
   primary key (tenant_id, user_id)
 );
 
-create index tenant_members_user_idx on public.tenant_members (user_id);
+create index if not exists tenant_members_user_idx on public.tenant_members (user_id);
 
 -- -----------------------------------------------------------------------------
 -- 5. Subscriptions + payment records (written by server/webhooks only)
 -- -----------------------------------------------------------------------------
-create table public.subscriptions (
+create table if not exists public.subscriptions (
   id                        uuid primary key default gen_random_uuid(),
   tenant_id                 uuid not null references public.tenants (id) on delete cascade,
   plan_id                   uuid not null references public.plans (id) on delete restrict,
@@ -146,17 +146,17 @@ create table public.subscriptions (
 );
 
 -- Only one live subscription per tenant.
-create unique index subscriptions_one_live_per_tenant
+create unique index if not exists subscriptions_one_live_per_tenant
   on public.subscriptions (tenant_id)
   where status in ('incomplete', 'trialing', 'active', 'past_due');
 
-create index subscriptions_tenant_idx on public.subscriptions (tenant_id);
+create index if not exists subscriptions_tenant_idx on public.subscriptions (tenant_id);
 
 create trigger subscriptions_updated_at
   before update on public.subscriptions
   for each row execute function public.set_updated_at();
 
-create table public.subscription_payments (
+create table if not exists public.subscription_payments (
   id                    uuid primary key default gen_random_uuid(),
   tenant_id             uuid not null references public.tenants (id) on delete cascade,
   subscription_id       uuid references public.subscriptions (id) on delete set null,
@@ -168,7 +168,7 @@ create table public.subscription_payments (
   created_at            timestamptz not null default now()
 );
 
-create index subscription_payments_tenant_idx on public.subscription_payments (tenant_id);
+create index if not exists subscription_payments_tenant_idx on public.subscription_payments (tenant_id);
 
 -- -----------------------------------------------------------------------------
 -- 6. Access helper functions
@@ -252,7 +252,7 @@ $$;
 -- -----------------------------------------------------------------------------
 -- 7. Catalog
 -- -----------------------------------------------------------------------------
-create table public.categories (
+create table if not exists public.categories (
   id          uuid primary key default gen_random_uuid(),
   tenant_id   uuid not null references public.tenants (id) on delete cascade,
   parent_id   uuid,
@@ -272,7 +272,7 @@ create trigger categories_updated_at
   before update on public.categories
   for each row execute function public.set_updated_at();
 
-create table public.products (
+create table if not exists public.products (
   id                 uuid primary key default gen_random_uuid(),
   tenant_id          uuid not null references public.tenants (id) on delete cascade,
   category_id        uuid,
@@ -294,14 +294,14 @@ create table public.products (
     on delete set null (category_id)
 );
 
-create unique index products_tenant_sku_uniq on public.products (tenant_id, sku) where sku is not null;
-create index products_tenant_status_idx on public.products (tenant_id, status);
+create unique index if not exists products_tenant_sku_uniq on public.products (tenant_id, sku) where sku is not null;
+create index if not exists products_tenant_status_idx on public.products (tenant_id, status);
 
 create trigger products_updated_at
   before update on public.products
   for each row execute function public.set_updated_at();
 
-create table public.product_images (
+create table if not exists public.product_images (
   id          uuid primary key default gen_random_uuid(),
   tenant_id   uuid not null references public.tenants (id) on delete cascade,
   product_id  uuid not null,
@@ -312,12 +312,12 @@ create table public.product_images (
   foreign key (product_id, tenant_id) references public.products (id, tenant_id) on delete cascade
 );
 
-create index product_images_product_idx on public.product_images (product_id, position);
+create index if not exists product_images_product_idx on public.product_images (product_id, position);
 
 -- -----------------------------------------------------------------------------
 -- 8. Storefront customers + orders
 -- -----------------------------------------------------------------------------
-create table public.customers (
+create table if not exists public.customers (
   id          uuid primary key default gen_random_uuid(),
   tenant_id   uuid not null references public.tenants (id) on delete cascade,
   user_id     uuid references auth.users (id) on delete set null,
@@ -334,7 +334,7 @@ create trigger customers_updated_at
   before update on public.customers
   for each row execute function public.set_updated_at();
 
-create table public.orders (
+create table if not exists public.orders (
   id                uuid primary key default gen_random_uuid(),
   tenant_id         uuid not null references public.tenants (id) on delete cascade,
   customer_id       uuid,
@@ -356,8 +356,8 @@ create table public.orders (
     on delete set null (customer_id)
 );
 
-create index orders_tenant_created_idx on public.orders (tenant_id, created_at desc);
-create index orders_customer_idx on public.orders (customer_id);
+create index if not exists orders_tenant_created_idx on public.orders (tenant_id, created_at desc);
+create index if not exists orders_customer_idx on public.orders (customer_id);
 
 create trigger orders_updated_at
   before update on public.orders
@@ -386,7 +386,7 @@ create trigger orders_assign_number
   before insert on public.orders
   for each row execute function public.assign_order_number();
 
-create table public.order_items (
+create table if not exists public.order_items (
   id          uuid primary key default gen_random_uuid(),
   tenant_id   uuid not null references public.tenants (id) on delete cascade,
   order_id    uuid not null,
@@ -401,12 +401,12 @@ create table public.order_items (
     on delete set null (product_id)
 );
 
-create index order_items_order_idx on public.order_items (order_id);
+create index if not exists order_items_order_idx on public.order_items (order_id);
 
 -- -----------------------------------------------------------------------------
 -- 9. Notifications (Firebase Cloud Messaging device tokens)
 -- -----------------------------------------------------------------------------
-create table public.notification_tokens (
+create table if not exists public.notification_tokens (
   id            uuid primary key default gen_random_uuid(),
   user_id       uuid not null references auth.users (id) on delete cascade,
   tenant_id     uuid references public.tenants (id) on delete cascade,
@@ -416,8 +416,8 @@ create table public.notification_tokens (
   last_seen_at  timestamptz not null default now()
 );
 
-create index notification_tokens_user_idx on public.notification_tokens (user_id);
-create index notification_tokens_tenant_idx on public.notification_tokens (tenant_id);
+create index if not exists notification_tokens_user_idx on public.notification_tokens (user_id);
+create index if not exists notification_tokens_tenant_idx on public.notification_tokens (tenant_id);
 
 -- -----------------------------------------------------------------------------
 -- 10. Plan-limit enforcement (database level, cannot be bypassed from the client)
@@ -1152,6 +1152,11 @@ begin
     raise exception 'FORBIDDEN';
   end if;
 
+  -- Must not already be cancelled, shipped, or delivered
+  if v_order.status in ('cancelled', 'shipped', 'delivered') then
+    raise exception 'INVALID_STATE: cannot cancel an order that is already %', v_order.status;
+  end if;
+
   -- Customer can only cancel while status = 'pending'
   if v_is_owner and not v_is_member and v_order.status <> 'pending' then
     raise exception 'FORBIDDEN: customers can only cancel pending orders';
@@ -1160,11 +1165,6 @@ begin
   -- Vendor member can cancel while status in ('pending', 'confirmed')
   if v_is_member and v_order.status not in ('pending', 'confirmed') then
     raise exception 'INVALID_STATE: order cannot be cancelled in % state', v_order.status;
-  end if;
-
-  -- Must not already be cancelled, shipped, or delivered
-  if v_order.status in ('cancelled', 'shipped', 'delivered') then
-    raise exception 'INVALID_STATE: cannot cancel an order that is already %', v_order.status;
   end if;
 
   -- Restock products that track inventory

@@ -90,6 +90,11 @@ begin
     raise exception 'FORBIDDEN';
   end if;
 
+  -- Must not already be cancelled, shipped, or delivered
+  if v_order.status in ('cancelled', 'shipped', 'delivered') then
+    raise exception 'INVALID_STATE: cannot cancel an order that is already %', v_order.status;
+  end if;
+
   -- Customer can only cancel while status = 'pending'
   if v_is_owner and not v_is_member and v_order.status <> 'pending' then
     raise exception 'FORBIDDEN: customers can only cancel pending orders';
@@ -98,11 +103,6 @@ begin
   -- Vendor member can cancel while status in ('pending', 'confirmed')
   if v_is_member and v_order.status not in ('pending', 'confirmed') then
     raise exception 'INVALID_STATE: order cannot be cancelled in % state', v_order.status;
-  end if;
-
-  -- Must not already be cancelled, shipped, or delivered
-  if v_order.status in ('cancelled', 'shipped', 'delivered') then
-    raise exception 'INVALID_STATE: cannot cancel an order that is already %', v_order.status;
   end if;
 
   -- Restock products that track inventory
