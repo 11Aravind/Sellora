@@ -8,7 +8,9 @@ and the limits inside each plan (for example: *Starter = max 30 products*).
 Built with **Next.js (React)** + **Supabase** + **Firebase (notifications)**.
 Domain model and feature set are inspired by [Bagisto](https://github.com/bagisto/bagisto) (MIT).
 
----
+-------
+
+
 
 ## 1. Read this first: "converting" Bagisto
 
