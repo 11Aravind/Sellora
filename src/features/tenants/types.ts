@@ -11,6 +11,7 @@ export interface TenantMember {
 }
 
 export interface TenantThemeSettings {
+  theme?: "modern-minimal" | "vibrant-retail" | "classic-boutique";
   primaryColor?: string;
   tagline?: string;
   bannerUrl?: string;

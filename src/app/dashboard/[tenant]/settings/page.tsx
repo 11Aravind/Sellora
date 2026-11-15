@@ -4,6 +4,7 @@ import { requireUser } from "@/features/auth/queries";
 import { getTenantBySlug, getTenantUsage } from "@/features/tenants/queries";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { StoreSettingsForm } from "@/features/tenants/components/StoreSettingsForm";
+import { SettingsNavTabs } from "@/features/tenants/components/SettingsNavTabs";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,8 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
         title="Store Settings & Theme"
         description="Configure your brand visual assets, theme styling, support contacts, and custom domain."
       />
+
+      <SettingsNavTabs tenantSlug={slug} />
 
       <StoreSettingsForm
         tenant={tenant}

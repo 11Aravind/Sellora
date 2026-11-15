@@ -21,7 +21,7 @@ export function ProductCard({ product }: { product: StorefrontProduct }) {
     product.compare_at_price > product.price;
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border/70 bg-card text-card-foreground shadow-sm transition-all hover:shadow-md hover:border-border">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-border/70 bg-card text-card-foreground shadow-sm transition-all hover:shadow-md hover:border-border [[data-store-theme=vibrant-retail]_&]:bg-[#061e16] [[data-store-theme=vibrant-retail]_&]:border-emerald-950 [[data-store-theme=vibrant-retail]_&]:text-white [[data-store-theme=vibrant-retail]_&]:rounded-2xl [[data-store-theme=classic-boutique]_&]:bg-white/90 [[data-store-theme=classic-boutique]_&]:border-stone-200 [[data-store-theme=classic-boutique]_&]:rounded-lg">
       {/* Product Image */}
       <Link
         href={`/products/${product.slug}`}
@@ -91,7 +91,7 @@ export function ProductCard({ product }: { product: StorefrontProduct }) {
             disabled={isOutOfStock}
             onClick={() => addItem(product.id, 1)}
             aria-label={`Add ${product.name} to cart`}
-            className="h-8 px-3 gap-1.5 shrink-0"
+            className="h-8 px-3 gap-1.5 shrink-0 [[data-store-theme=vibrant-retail]_&]:bg-emerald-400 [[data-store-theme=vibrant-retail]_&]:text-slate-950 [[data-store-theme=vibrant-retail]_&]:hover:bg-emerald-300 [[data-store-theme=classic-boutique]_&]:bg-[#78350f] [[data-store-theme=classic-boutique]_&]:hover:bg-[#92400e] [[data-store-theme=classic-boutique]_&]:text-amber-50"
           >
             <ShoppingCart className="h-3.5 w-3.5" />
             <span className="text-xs">{isOutOfStock ? "Out" : "Add"}</span>

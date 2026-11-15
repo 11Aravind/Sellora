@@ -1,12 +1,13 @@
 import * as React from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Store, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { getStorefrontTenant } from "@/features/storefront/queries";
 import { CartProvider } from "@/features/storefront/context/CartContext";
 import { CartBadge } from "@/features/storefront/components/CartBadge";
 import { CustomerNav } from "@/features/storefront/components/CustomerNav";
 import { Card, CardContent } from "@/components/ui/card";
+import { getThemeConfig } from "@/features/themes/templates";
 
 export default async function StoreLayout({
   children,
@@ -49,13 +50,49 @@ export default async function StoreLayout({
     );
   }
 
-  const primaryColor = (tenant.settings?.primaryColor as string) || "#4f46e5";
+  const themeConfig = getThemeConfig(tenant.settings?.theme as string);
+  const primaryColor = (tenant.settings?.primaryColor as string) || themeConfig.recommendedColor;
   const tagline = (tenant.settings?.tagline as string) || null;
+
+  // Theme-specific styles
+  const isVibrant = themeConfig.id === "vibrant-retail";
+  const isBoutique = themeConfig.id === "classic-boutique";
+
+  const rootBg = isVibrant
+    ? "bg-[#04130d] text-slate-100"
+    : isBoutique
+      ? "bg-[#faf7f2] text-stone-900"
+      : "bg-white text-slate-900";
+
+  const headerBg = isVibrant
+    ? "bg-[#061e16] border-emerald-950 text-white"
+    : isBoutique
+      ? "bg-[#faf7f2] border-stone-200/80 text-stone-900"
+      : "bg-white border-slate-100 text-slate-900";
+
+  const navText = isVibrant
+    ? "text-emerald-200/70 hover:text-white"
+    : isBoutique
+      ? "text-stone-600 hover:text-stone-900 font-sans"
+      : "text-slate-500 hover:text-slate-900";
+
+  const logoBg = isVibrant
+    ? "bg-emerald-400 text-slate-950 font-black"
+    : isBoutique
+      ? "bg-[#8c532b] text-amber-50"
+      : "bg-emerald-600 text-white font-bold";
+
+  const footerBg = isVibrant
+    ? "border-emerald-950 bg-[#03130d] text-emerald-200/60"
+    : isBoutique
+      ? "border-stone-200 bg-[#f4eee4] text-stone-600"
+      : "border-slate-100 bg-slate-50 text-slate-500";
 
   return (
     <CartProvider tenantId={tenant.id}>
       <div
-        className="min-h-screen flex flex-col bg-background text-foreground"
+        data-store-theme={themeConfig.id}
+        className={`min-h-screen flex flex-col ${rootBg} ${themeConfig.fontClass} transition-colors`}
         style={
           {
             "--store-primary": primaryColor,
@@ -71,7 +108,7 @@ export default async function StoreLayout({
         }} />
 
         {/* Storefront Header */}
-        <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className={`sticky top-0 z-40 w-full border-b backdrop-blur-md ${headerBg}`}>
           <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
             <div className="flex items-center gap-6">
               <Link
@@ -83,25 +120,22 @@ export default async function StoreLayout({
                   <img
                     src={tenant.logo_url}
                     alt={tenant.name}
-                    className="h-8 w-8 rounded object-cover"
+                    className="h-8 w-8 rounded-lg object-cover"
                   />
                 ) : (
-                  <div
-                    className="flex h-8 w-8 items-center justify-center rounded-lg text-white"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    <Store className="h-4 w-4" />
+                  <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${logoBg}`}>
+                    {tenant.name.slice(0, 1).toUpperCase()}
                   </div>
                 )}
-                <span>{tenant.name}</span>
+                <span className={themeConfig.headingFontClass}>{tenant.name}</span>
               </Link>
 
               <nav className="hidden md:flex items-center gap-5">
                 <Link
                   href="/products"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className={`text-sm font-medium transition-colors ${navText}`}
                 >
-                  All Products
+                  {isVibrant ? "Deals & Products" : isBoutique ? "The Collection" : "All Products"}
                 </Link>
               </nav>
             </div>
@@ -109,7 +143,7 @@ export default async function StoreLayout({
             <div className="flex items-center gap-3">
               <Link
                 href="/products"
-                className="md:hidden text-sm font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1"
+                className={`md:hidden text-sm font-medium transition-colors px-2 py-1 ${navText}`}
               >
                 Catalog
               </Link>
@@ -125,18 +159,18 @@ export default async function StoreLayout({
         </main>
 
         {/* Storefront Footer */}
-        <footer className="border-t border-border/50 bg-muted/20 py-10 text-center text-sm text-muted-foreground">
+        <footer className={`border-t py-12 text-center text-sm ${footerBg}`}>
           <div className="container mx-auto px-4 space-y-3">
-            <p className="font-semibold text-foreground text-base">
+            <p className={`font-semibold text-base ${isVibrant ? "text-white" : isBoutique ? "text-stone-900 font-serif" : "text-slate-900"}`}>
               {tenant.name}
             </p>
             {tagline && (
-              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              <p className="text-xs sm:text-sm max-w-md mx-auto opacity-80">
                 {tagline}
               </p>
             )}
-            <p className="text-xs text-muted-foreground pt-4">
-              © {new Date().getFullYear()} {tenant.name}. All rights reserved. Powered by SaaS Commerce Kit.
+            <p className="text-xs opacity-60 pt-4">
+              © {new Date().getFullYear()} {tenant.name}. All rights reserved.
             </p>
           </div>
         </footer>

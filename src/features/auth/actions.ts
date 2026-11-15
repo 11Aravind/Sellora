@@ -346,10 +346,28 @@ export async function createTenantAction(
     };
   }
 
+  // 2b. Persist chosen template into tenant settings
+  const slug = parsed.data.slug.trim().toLowerCase();
+  try {
+    const adminSupabase = createAdminClient();
+    await (adminSupabase.from("tenants") as unknown as {
+      update: (vals: Record<string, unknown>) => {
+        eq: (col: string, val: unknown) => Promise<{ error: Error | null }>;
+      };
+    })
+      .update({
+        settings: {
+          theme: parsed.data.theme || "modern-minimal",
+        },
+      })
+      .eq("slug", slug);
+  } catch (err) {
+    console.error("[createTenantAction: set theme error]:", err);
+  }
+
   // 3. Determine redirect URL:
   // If plan has trial_days > 0 or price is 0 -> /dashboard/{slug}
   // Otherwise (paid, no trial) -> /dashboard/{slug}/billing?subscribe=1
-  const slug = parsed.data.slug.trim().toLowerCase();
   const hasTrial = (plan.trial_days ?? 0) > 0;
   const isFree = (plan.price_paise ?? 0) === 0;
 

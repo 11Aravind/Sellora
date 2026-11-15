@@ -126,6 +126,7 @@ export async function updateStoreSettingsAction(
   const supabase = await createClient();
 
   const newSettings = {
+    theme: parsed.data.theme || "modern-minimal",
     primaryColor: parsed.data.primaryColor,
     tagline: parsed.data.tagline || null,
     bannerUrl: parsed.data.bannerUrl || null,

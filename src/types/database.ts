@@ -172,6 +172,56 @@ export type Database = {
           created_at?: string;
         };
       };
+      tenant_payment_gateways: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          gateway_name: string;
+          gateway_account_id: string | null;
+          connection_status: "not_connected" | "connecting" | "connected" | "connection_failed" | "disconnected";
+          encrypted_access_token: string | null;
+          encrypted_refresh_token: string | null;
+          token_expiry: string | null;
+          is_online_enabled: boolean;
+          is_cod_enabled: boolean;
+          supported_methods: Json;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          gateway_name?: string;
+          gateway_account_id?: string | null;
+          connection_status?: "not_connected" | "connecting" | "connected" | "connection_failed" | "disconnected";
+          encrypted_access_token?: string | null;
+          encrypted_refresh_token?: string | null;
+          token_expiry?: string | null;
+          is_online_enabled?: boolean;
+          is_cod_enabled?: boolean;
+          supported_methods?: Json;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          gateway_name?: string;
+          gateway_account_id?: string | null;
+          connection_status?: "not_connected" | "connecting" | "connected" | "connection_failed" | "disconnected";
+          encrypted_access_token?: string | null;
+          encrypted_refresh_token?: string | null;
+          token_expiry?: string | null;
+          is_online_enabled?: boolean;
+          is_cod_enabled?: boolean;
+          supported_methods?: Json;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       subscriptions: {
         Row: {
           id: string;

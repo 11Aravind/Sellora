@@ -50,6 +50,9 @@ export const onboardingSchema = z.object({
       SLUG_REGEX,
       "Slug must contain only lowercase letters, numbers, and hyphens (cannot start or end with a hyphen)"
     ),
+  theme: z
+    .enum(["modern-minimal", "vibrant-retail", "classic-boutique"])
+    .default("modern-minimal"),
 });
 
 export type OnboardingInput = z.infer<typeof onboardingSchema>;

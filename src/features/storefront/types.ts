@@ -4,6 +4,7 @@ export interface StorefrontTenant {
   name: string;
   logo_url: string | null;
   settings: {
+    theme?: "modern-minimal" | "vibrant-retail" | "classic-boutique";
     primaryColor?: string;
     tagline?: string;
     bannerUrl?: string;

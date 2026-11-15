@@ -2,6 +2,9 @@ import { z } from "zod";
 
 export const storeSettingsSchema = z.object({
   name: z.string().trim().min(2, "Store name must be at least 2 characters").max(100),
+  theme: z
+    .enum(["modern-minimal", "vibrant-retail", "classic-boutique"])
+    .default("modern-minimal"),
   logoUrl: z.string().url("Valid image URL required").nullable().optional().or(z.literal("")),
   primaryColor: z
     .string()

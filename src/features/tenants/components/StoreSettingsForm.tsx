@@ -11,6 +11,7 @@ import {
   Upload,
   Globe,
   Palette,
+  LayoutTemplate,
   AlertTriangle,
   Loader2,
   Check,
@@ -35,6 +36,13 @@ import {
   removeCustomDomainAction,
 } from "../actions";
 import type { TenantData } from "../types";
+import { THEME_LIST } from "@/features/themes/templates";
+import type { StoreThemeId } from "@/features/themes/types";
+import {
+  ModernMinimalMockup,
+  VibrantRetailMockup,
+  ClassicBoutiqueMockup,
+} from "@/features/themes/components/TemplateMockups";
 
 interface StoreSettingsFormProps {
   tenant: TenantData;
@@ -63,6 +71,7 @@ export function StoreSettingsForm({
     resolver: zodResolver(storeSettingsSchema as unknown as SchemaType),
     defaultValues: {
       name: tenant.name,
+      theme: (tenant.settings.theme as StoreThemeId) || "modern-minimal",
       logoUrl: tenant.logo_url || "",
       primaryColor: tenant.settings.primaryColor || "#0f172a",
       tagline: tenant.settings.tagline || "",
@@ -74,6 +83,7 @@ export function StoreSettingsForm({
   });
 
   const primaryColor = useWatch({ control: form.control, name: "primaryColor" }) ?? "#0f172a";
+  const selectedTheme = useWatch({ control: form.control, name: "theme" }) ?? ((tenant.settings.theme as StoreThemeId) || "modern-minimal");
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -327,6 +337,79 @@ export function StoreSettingsForm({
                     {form.formState.errors.primaryColor.message}
                   </p>
                 )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Storefront UI Template Switcher */}
+          <Card className="border-border/80 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <LayoutTemplate className="h-4 w-4 text-primary" />
+                <span>Storefront UI Template</span>
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Select your live storefront aesthetic. Switch anytime to refresh your store&apos;s look and feel.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+                {THEME_LIST.map((theme) => {
+                  const isSelected = selectedTheme === theme.id;
+
+                  return (
+                    <div
+                      key={theme.id}
+                      onClick={() => {
+                        form.setValue("theme", theme.id, { shouldDirty: true });
+                      }}
+                      className={`group relative cursor-pointer rounded-2xl p-4 transition-all flex flex-col justify-between ${
+                        isSelected
+                          ? "border-2 border-emerald-600 bg-card shadow-md ring-1 ring-emerald-600/30"
+                          : "border border-border/80 bg-card hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-2xs"
+                      }`}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="space-y-0.5">
+                            <h4 className="font-extrabold text-base text-foreground tracking-tight">
+                              {theme.name}
+                            </h4>
+                            <p className="text-xs font-medium text-muted-foreground">
+                              {theme.categoryTag}
+                            </p>
+                          </div>
+                          <div
+                            className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                              isSelected
+                                ? "bg-emerald-600 text-white shadow-xs"
+                                : "border-2 border-slate-300 dark:border-slate-600"
+                            }`}
+                          >
+                            {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
+                          </div>
+                        </div>
+
+                        {/* Realistic Mockup Preview */}
+                        <div className="pt-1">
+                          {theme.id === "modern-minimal" && (
+                            <ModernMinimalMockup storeName={tenant.name} />
+                          )}
+                          {theme.id === "vibrant-retail" && (
+                            <VibrantRetailMockup storeName={tenant.name} />
+                          )}
+                          {theme.id === "classic-boutique" && (
+                            <ClassicBoutiqueMockup storeName={tenant.name} />
+                          )}
+                        </div>
+
+                        <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+                          {theme.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
