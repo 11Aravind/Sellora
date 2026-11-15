@@ -98,7 +98,8 @@ export async function createCategoryAction(
     return { ok: false, code, message };
   }
 
-  revalidatePath(`/dashboard`);
+  revalidatePath(`/dashboard`, "layout");
+  revalidatePath(`/`, "layout");
   try {
     revalidateStoreTag(`tenant:${tenantId}:products`);
     revalidateStoreTag(`tenant:${tenantId}:categories`);
@@ -163,7 +164,8 @@ export async function updateCategoryAction(
     return { ok: false, code, message };
   }
 
-  revalidatePath(`/dashboard`);
+  revalidatePath(`/dashboard`, "layout");
+  revalidatePath(`/`, "layout");
   try {
     revalidateStoreTag(`tenant:${tenantId}:products`);
     revalidateStoreTag(`tenant:${tenantId}:categories`);
@@ -191,7 +193,8 @@ export async function deleteCategoryAction(
     return { ok: false, code, message: friendlyMessage(code) };
   }
 
-  revalidatePath(`/dashboard`);
+  revalidatePath(`/dashboard`, "layout");
+  revalidatePath(`/`, "layout");
   try {
     revalidateStoreTag(`tenant:${tenantId}:products`);
     revalidateStoreTag(`tenant:${tenantId}:categories`);
@@ -277,7 +280,8 @@ export async function createProductAction(
     );
   }
 
-  revalidatePath(`/dashboard`);
+  revalidatePath(`/dashboard`, "layout");
+  revalidatePath(`/`, "layout");
   try {
     revalidateStoreTag(`tenant:${tenantId}:products`);
     revalidateStoreTag(`tenant:${tenantId}:categories`);
@@ -366,7 +370,8 @@ export async function updateProductAction(
     );
   }
 
-  revalidatePath(`/dashboard`);
+  revalidatePath(`/dashboard`, "layout");
+  revalidatePath(`/`, "layout");
   try {
     revalidateStoreTag(`tenant:${tenantId}:products`);
     revalidateStoreTag(`tenant:${tenantId}:categories`);
@@ -403,7 +408,8 @@ export async function archiveProductAction(
     return { ok: false, code, message: friendlyMessage(code) };
   }
 
-  revalidatePath(`/dashboard`);
+  revalidatePath(`/dashboard`, "layout");
+  revalidatePath(`/`, "layout");
   try {
     revalidateStoreTag(`tenant:${tenantId}:products`);
     revalidateStoreTag(`tenant:${tenantId}:categories`);
@@ -441,7 +447,8 @@ export async function unarchiveProductAction(
     return { ok: false, code, message: friendlyMessage(code) };
   }
 
-  revalidatePath(`/dashboard`);
+  revalidatePath(`/dashboard`, "layout");
+  revalidatePath(`/`, "layout");
   try {
     revalidateStoreTag(`tenant:${tenantId}:products`);
     revalidateStoreTag(`tenant:${tenantId}:categories`);
@@ -482,7 +489,8 @@ export async function bulkArchiveProductsAction(
     return { ok: false, code, message: friendlyMessage(code) };
   }
 
-  revalidatePath(`/dashboard`);
+  revalidatePath(`/dashboard`, "layout");
+  revalidatePath(`/`, "layout");
   return { ok: true, data: { archivedCount: productIds.length } };
 }
 
@@ -560,7 +568,8 @@ export async function deleteProductAction(
     return { ok: false, code, message: friendlyMessage(code) };
   }
 
-  revalidatePath(`/dashboard`);
+  revalidatePath(`/dashboard`, "layout");
+  revalidatePath(`/`, "layout");
   try {
     revalidateStoreTag(`tenant:${tenantId}:products`);
     revalidateStoreTag(`tenant:${tenantId}:categories`);

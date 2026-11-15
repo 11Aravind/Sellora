@@ -1593,3 +1593,5 @@ begin
     );
 end;
 $$;
+
+grant execute on function public.get_storefront_payment_settings(uuid) to anon, authenticated, service_role;

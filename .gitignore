@@ -11,9 +11,8 @@
 /build
 
 # environment files
-.env*.local
-.env.local
-.emv*
+.env
+.env.*
 !.env.example
 
 # Supabase

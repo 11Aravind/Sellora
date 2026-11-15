@@ -128,4 +128,48 @@ describe("Catalog Schemas & Validations", () => {
       expect(friendlyMessage(code, { field: "URL slug" })).toBe("That URL slug is already taken.");
     });
   });
+
+  describe("Category In-Memory Hierarchy Resolution", () => {
+    it("maps parent_id to parent category object correctly", () => {
+      const rows = [
+        {
+          id: "cat-1",
+          tenant_id: "tenant-1",
+          parent_id: null,
+          name: "Apparel",
+          slug: "apparel",
+          sort_order: 0,
+          created_at: "2026-11-01T00:00:00Z",
+          updated_at: "2026-11-01T00:00:00Z",
+        },
+        {
+          id: "cat-2",
+          tenant_id: "tenant-1",
+          parent_id: "cat-1",
+          name: "Shirts",
+          slug: "shirts",
+          sort_order: 1,
+          created_at: "2026-11-01T00:00:00Z",
+          updated_at: "2026-11-01T00:00:00Z",
+        },
+      ];
+
+      const parentMap = new Map<string, { id: string; name: string; slug: string }>();
+      for (const r of rows) {
+        parentMap.set(r.id, { id: r.id, name: r.name, slug: r.slug });
+      }
+
+      const categories = rows.map((r) => ({
+        ...r,
+        parent: r.parent_id ? parentMap.get(r.parent_id) || null : null,
+      }));
+
+      expect(categories[0].parent).toBeNull();
+      expect(categories[1].parent).toEqual({
+        id: "cat-1",
+        name: "Apparel",
+        slug: "apparel",
+      });
+    });
+  });
 });

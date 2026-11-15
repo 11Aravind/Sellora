@@ -129,7 +129,7 @@ export const getStorefrontCategories = cache(
     const supabase = createAnonClient();
     const { data, error } = await supabase
       .from("categories")
-      .select("id, name, slug, description")
+      .select("id, name, slug")
       .eq("tenant_id", tenantId)
       .order("name", { ascending: true });
 
@@ -138,7 +138,13 @@ export const getStorefrontCategories = cache(
       return [];
     }
 
-    return (data || []) as StorefrontCategory[];
+    const rows = (data || []) as Array<{ id: string; name: string; slug: string }>;
+    return rows.map((r) => ({
+      id: r.id,
+      name: r.name,
+      slug: r.slug,
+      description: null,
+    }));
   }
 );
 

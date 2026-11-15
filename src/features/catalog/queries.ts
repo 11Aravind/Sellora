@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
 import type { Category, Product, ProductFilters, PaginatedProducts } from "./types";
 
 /**
@@ -17,18 +18,16 @@ export async function getCategories(tenantId: string): Promise<Category[]> {
       slug,
       sort_order,
       created_at,
-      updated_at,
-      parent:parent_id (
-        id,
-        name,
-        slug
-      )
+      updated_at
     `)
     .eq("tenant_id", tenantId)
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true });
 
   if (error || !data) {
+    if (error) {
+      logger.error("Failed to fetch tenant categories", { error: String(error) });
+    }
     return [];
   }
 
@@ -41,10 +40,15 @@ export async function getCategories(tenantId: string): Promise<Category[]> {
     sort_order: number;
     created_at: string;
     updated_at: string;
-    parent?: { id: string; name: string; slug: string } | { id: string; name: string; slug: string }[] | null;
   }
 
   const rows = data as unknown as RawCategory[];
+
+  // Build parent lookup map in-memory to prevent PostgREST schema cache relationship failures on self-referential keys
+  const parentMap = new Map<string, { id: string; name: string; slug: string }>();
+  for (const r of rows) {
+    parentMap.set(r.id, { id: r.id, name: r.name, slug: r.slug });
+  }
 
   return rows.map((r) => ({
     id: r.id,
@@ -55,7 +59,7 @@ export async function getCategories(tenantId: string): Promise<Category[]> {
     sort_order: r.sort_order,
     created_at: r.created_at,
     updated_at: r.updated_at,
-    parent: Array.isArray(r.parent) ? r.parent[0] : r.parent || null,
+    parent: r.parent_id ? parentMap.get(r.parent_id) || null : null,
   }));
 }
 
@@ -75,12 +79,7 @@ export async function getCategory(tenantId: string, id: string): Promise<Categor
       slug,
       sort_order,
       created_at,
-      updated_at,
-      parent:parent_id (
-        id,
-        name,
-        slug
-      )
+      updated_at
     `)
     .eq("tenant_id", tenantId)
     .eq("id", id)
@@ -99,8 +98,18 @@ export async function getCategory(tenantId: string, id: string): Promise<Categor
     sort_order: number;
     created_at: string;
     updated_at: string;
-    parent?: { id: string; name: string; slug: string } | { id: string; name: string; slug: string }[] | null;
   };
+
+  let parent: { id: string; name: string; slug: string } | null = null;
+  if (r.parent_id) {
+    const { data: parentData } = await supabase
+      .from("categories")
+      .select("id, name, slug")
+      .eq("tenant_id", tenantId)
+      .eq("id", r.parent_id)
+      .maybeSingle();
+    parent = (parentData as { id: string; name: string; slug: string } | null) || null;
+  }
 
   return {
     id: r.id,
@@ -111,7 +120,7 @@ export async function getCategory(tenantId: string, id: string): Promise<Categor
     sort_order: r.sort_order,
     created_at: r.created_at,
     updated_at: r.updated_at,
-    parent: Array.isArray(r.parent) ? r.parent[0] : r.parent || null,
+    parent,
   };
 }
 

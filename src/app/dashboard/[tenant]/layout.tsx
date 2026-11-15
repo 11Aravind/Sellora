@@ -1,20 +1,9 @@
-import Link from "next/link";
+import * as React from "react";
 import { notFound } from "next/navigation";
-import {
-  CreditCard,
-  FolderTree,
-  LayoutDashboard,
-  Package,
-  Settings,
-  ShoppingCart,
-  Users,
-} from "lucide-react";
 import { requireUser } from "@/features/auth/queries";
 import { createClient } from "@/lib/supabase/server";
 import { getUserTenants } from "@/features/tenants/queries";
-import { StoreSwitcher } from "@/features/tenants/components/StoreSwitcher";
 import { UserNav } from "@/components/shared/UserNav";
-import { Badge } from "@/components/ui/badge";
 import { SubscriptionBanner } from "@/features/subscriptions/components/SubscriptionBanner";
 import {
   getUserNotifications,
@@ -22,6 +11,10 @@ import {
 } from "@/features/notifications/queries";
 import { EnableNotifications } from "@/features/notifications/components/EnableNotifications";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
+import {
+  DashboardSidebar,
+  MobileNavSheet,
+} from "@/features/tenants/components/DashboardSidebar";
 
 interface TenantData {
   id: string;
@@ -29,11 +22,18 @@ interface TenantData {
   name: string;
   status: "active" | "suspended";
   custom_domain: string | null;
+  logo_url: string | null;
 }
 
 interface MemberQueryResult {
   role: string;
   tenants: TenantData;
+}
+
+interface SubQueryResult {
+  status?: string;
+  trial_ends_at?: string | null;
+  plans?: { name: string } | { name: string }[] | null;
 }
 
 export const dynamic = "force-dynamic";
@@ -61,7 +61,8 @@ export default async function TenantDashboardLayout({
           slug,
           name,
           status,
-          custom_domain
+          custom_domain,
+          logo_url
         )
       `)
       .eq("tenants.slug", slug)
@@ -77,65 +78,87 @@ export default async function TenantDashboardLayout({
   }
 
   const tenant = tenantMember.tenants;
-  const isSuspended = tenant.status === "suspended";
   const isStaff = tenantMember.role === "staff";
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "localhost:3000";
-
-  // Role-aware menu: staff cannot see Team, Billing, or Settings
-  const allNavItems = [
-    { label: "Overview", href: `/dashboard/${slug}`, icon: LayoutDashboard, staffAllowed: true },
-    { label: "Products", href: `/dashboard/${slug}/products`, icon: Package, staffAllowed: true },
-    { label: "Categories", href: `/dashboard/${slug}/categories`, icon: FolderTree, staffAllowed: true },
-    { label: "Orders", href: `/dashboard/${slug}/orders`, icon: ShoppingCart, staffAllowed: true },
-    { label: "Team", href: `/dashboard/${slug}/team`, icon: Users, staffAllowed: false },
-    { label: "Billing", href: `/dashboard/${slug}/billing`, icon: CreditCard, staffAllowed: false },
-    { label: "Settings", href: `/dashboard/${slug}/settings`, icon: Settings, staffAllowed: false },
-  ];
-
-  const navItems = allNavItems.filter((item) => (isStaff ? item.staffAllowed : true));
 
   const [{ data: subData }, notifications, unreadCount] = await Promise.all([
     supabase
       .from("subscriptions")
-      .select("status, trial_ends_at")
+      .select(`
+        status,
+        trial_ends_at,
+        plans (
+          name
+        )
+      `)
       .eq("tenant_id", tenant.id)
       .maybeSingle(),
     getUserNotifications(tenant.id, 20),
     getUnreadNotificationsCount(tenant.id),
   ]);
 
-  const sub = subData as { status?: string; trial_ends_at?: string | null } | null;
+  const sub = subData as unknown as SubQueryResult | null;
+  const planData = sub?.plans;
+  const planName = Array.isArray(planData) ? planData[0]?.name : planData?.name;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      {/* Subscription Banner */}
-      <SubscriptionBanner
-        status={sub?.status || "incomplete"}
-        trialEndsAt={sub?.trial_ends_at}
-        tenantSlug={slug}
+    <div className="min-h-screen flex bg-background text-foreground">
+      {/* Desktop Sticky Left Sidebar Menu */}
+      <DashboardSidebar
+        slug={slug}
+        storeName={tenant.name}
+        storeStatus={tenant.status}
+        logoUrl={tenant.logo_url}
+        stores={userStores}
+        isStaff={isStaff}
+        rootDomain={rootDomain}
+        planName={planName}
       />
 
-      {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur px-6 py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <StoreSwitcher currentSlug={slug} stores={userStores} />
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Subscription Banner */}
+        <SubscriptionBanner
+          status={sub?.status || "incomplete"}
+          trialEndsAt={sub?.trial_ends_at}
+          tenantSlug={slug}
+        />
 
-            <Badge variant={isSuspended ? "destructive" : "outline"} className="text-xs">
-              {tenant.status}
-            </Badge>
+        {/* Top Header */}
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-border bg-background/95 backdrop-blur px-4 sm:px-6">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Mobile menu trigger */}
+            <MobileNavSheet
+              slug={slug}
+              storeName={tenant.name}
+              storeStatus={tenant.status}
+              logoUrl={tenant.logo_url}
+              stores={userStores}
+              isStaff={isStaff}
+              rootDomain={rootDomain}
+              planName={planName}
+            />
 
+            {/* Header Title / Breadcrumb */}
+            <div className="flex items-center gap-2 text-sm min-w-0">
+              <span className="font-semibold text-foreground truncate">
+                Dashboard
+              </span>
+            </div>
+          </div>
+
+          {/* Right Actions: Store link, Notifications, User */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <a
               href={`http://${slug}.${rootDomain}`}
               target="_blank"
               rel="noreferrer"
-              className="text-xs text-muted-foreground hover:text-primary transition-colors hidden sm:inline-block font-medium"
+              className="text-xs text-muted-foreground hover:text-foreground border border-border/80 hover:bg-muted/60 transition-colors px-2.5 py-1 rounded-md hidden md:inline-flex items-center gap-1.5 font-medium shadow-2xs"
             >
-              View store ↗
+              <span>View store</span>
+              <span className="text-[10px]">↗</span>
             </a>
-          </div>
 
-          <div className="flex items-center gap-3">
             <EnableNotifications tenantId={tenant.id} />
             <NotificationBell
               notifications={notifications}
@@ -149,30 +172,13 @@ export default async function TenantDashboardLayout({
               }}
             />
           </div>
-        </div>
+        </header>
 
-        {/* Secondary Sub-navigation */}
-        <nav className="flex items-center gap-1 overflow-x-auto pt-3 border-t border-border/40 mt-3 text-sm font-medium">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors shrink-0 text-xs"
-              >
-                <Icon className="h-3.5 w-3.5" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </header>
-
-      {/* Main Tenant Content */}
-      <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full">
-        {children}
-      </main>
+        {/* Main Tenant Content */}
+        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
