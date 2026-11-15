@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Plus, Store, UserCheck } from "lucide-react";
+import { ArrowRight, Plus, UserCheck } from "lucide-react";
 import { requireUser, getMyTenants } from "@/features/auth/queries";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { UserNav } from "@/components/shared/UserNav";
+import { BrandLogo } from "@/components/shared";
 
 export const dynamic = "force-dynamic";
 
@@ -42,12 +43,7 @@ export default async function DashboardStorePickerPage() {
       {/* Top Header */}
       <header className="border-b border-border/40 bg-background/95 backdrop-blur px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-              <Store className="h-4 w-4" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">Sellora</span>
-          </Link>
+          <BrandLogo imageClassName="h-8 w-auto" priority />
 
           <div className="flex items-center gap-3">
             {tenants.length < 5 && (

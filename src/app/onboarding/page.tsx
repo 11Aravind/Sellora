@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { AlertCircle, Store } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { requireUser, getMyTenants } from "@/features/auth/queries";
 import { getActivePlans } from "@/features/plans/queries";
 import { OnboardingWizard } from "@/features/tenants/components/OnboardingWizard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BrandLogo } from "@/components/shared";
 
 export const dynamic = "force-dynamic";
 
@@ -60,12 +61,7 @@ export default async function OnboardingPage({
       {/* Header */}
       <header className="border-b border-border/40 bg-background/95 backdrop-blur px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-              <Store className="h-4 w-4" />
-            </div>
-            <span className="text-lg font-bold tracking-tight">Sellora</span>
-          </Link>
+          <BrandLogo imageClassName="h-8 w-auto" priority />
           <Link href="/dashboard">
             <Button variant="ghost" size="sm">
               Dashboard

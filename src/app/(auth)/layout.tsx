@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { Store } from "lucide-react";
+import * as React from "react";
+import { BrandLogo } from "@/components/shared";
 
 export default function AuthLayout({
   children,
@@ -7,23 +7,16 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-muted/20">
-      <div className="mb-8 flex items-center gap-2">
-        <Link href="/" className="flex items-center gap-2 hover:opacity-90 transition-opacity">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-            <Store className="h-5 w-5" />
-          </div>
-          <span className="text-xl font-bold tracking-tight text-foreground">
-            Sellora
-          </span>
-        </Link>
+    <div className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-6 bg-[#fbfbfe] dark:bg-background">
+      <div className="mb-4 sm:mb-5 flex items-center justify-center">
+        <BrandLogo imageClassName="h-9 sm:h-10 w-auto" priority />
       </div>
 
-      <div className="w-full max-w-md animate-in fade-in-50 duration-300">
+      <div className="w-full max-w-[410px] animate-in fade-in-50 duration-300">
         {children}
       </div>
 
-      <footer className="mt-8 text-center text-xs text-muted-foreground">
+      <footer className="mt-5 text-center text-xs text-muted-foreground/80">
         © 2026 Sellora. Secure multi-tenant authentication.
       </footer>
     </div>

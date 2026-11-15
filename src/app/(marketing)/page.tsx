@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { BrandLogo } from "@/components/shared";
 import {
   Card,
   CardContent,
@@ -22,14 +23,7 @@ export default function MarketingHomePage() {
       {/* Navigation Bar */}
       <header className="border-border/40 bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
         <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary text-primary-foreground flex h-9 w-9 items-center justify-center rounded-lg shadow-sm">
-              <Store className="h-5 w-5" />
-            </div>
-            <span className="text-xl font-bold tracking-tight">
-              Sellora
-            </span>
-          </div>
+          <BrandLogo imageClassName="h-9 w-auto" priority />
 
           <nav className="text-muted-foreground hidden items-center gap-6 text-sm font-medium md:flex">
             <Link
