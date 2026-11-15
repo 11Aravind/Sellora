@@ -17,7 +17,7 @@ import { UserNav } from "@/components/shared/UserNav";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Your Stores | SaaS Commerce",
+  title: "Your Stores | Sellora",
   description: "Select a store to manage your products, orders, and team.",
 };
 
@@ -46,7 +46,7 @@ export default async function DashboardStorePickerPage() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
               <Store className="h-4 w-4" />
             </div>
-            <span className="text-lg font-bold tracking-tight">SaaS Commerce</span>
+            <span className="text-lg font-bold tracking-tight">Sellora</span>
           </Link>
 
           <div className="flex items-center gap-3">
@@ -153,7 +153,7 @@ export default async function DashboardStorePickerPage() {
 
       {/* Footer */}
       <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-        © 2026 SaaS Commerce Platform. Multi-tenant store picker.
+        © 2026 Sellora. Multi-tenant store picker.
       </footer>
     </div>
   );

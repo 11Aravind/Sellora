@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Create your store | SaaS Commerce",
+  title: "Create your store | Sellora",
   description: "Set up your online store in three simple steps.",
 };
 
@@ -64,7 +64,7 @@ export default async function OnboardingPage({
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
               <Store className="h-4 w-4" />
             </div>
-            <span className="text-lg font-bold tracking-tight">SaaS Commerce</span>
+            <span className="text-lg font-bold tracking-tight">Sellora</span>
           </Link>
           <Link href="/dashboard">
             <Button variant="ghost" size="sm">
@@ -85,7 +85,7 @@ export default async function OnboardingPage({
 
       {/* Footer */}
       <footer className="border-t border-border/40 py-6 text-center text-xs text-muted-foreground">
-        © 2026 SaaS Commerce Platform. Safe, isolated multi-tenant architecture.
+        © 2026 Sellora. Safe, isolated multi-tenant architecture.
       </footer>
     </div>
   );

@@ -1,4 +1,4 @@
-# SaaS Commerce Kit - Project Context
+# Sellora - Project Context
 
 ## Product
 A multi-tenant SaaS e-commerce platform. Vendors sign up, choose a subscription plan

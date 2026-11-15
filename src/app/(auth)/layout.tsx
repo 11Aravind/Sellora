@@ -14,7 +14,7 @@ export default function AuthLayout({
             <Store className="h-5 w-5" />
           </div>
           <span className="text-xl font-bold tracking-tight text-foreground">
-            SaaS Commerce
+            Sellora
           </span>
         </Link>
       </div>
@@ -24,7 +24,7 @@ export default function AuthLayout({
       </div>
 
       <footer className="mt-8 text-center text-xs text-muted-foreground">
-        © 2026 SaaS Commerce Platform. Secure multi-tenant authentication.
+        © 2026 Sellora. Secure multi-tenant authentication.
       </footer>
     </div>
   );

@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SaaS Commerce Platform | Launch your store",
+  title: "Sellora | Launch your store",
   description:
     "Multi-tenant e-commerce platform for modern brands and independent sellers.",
 };

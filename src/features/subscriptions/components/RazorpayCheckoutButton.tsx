@@ -74,7 +74,7 @@ export function RazorpayCheckoutButton({
       const options = {
         key: data.keyId,
         subscription_id: data.subscriptionId,
-        name: "SaaS Commerce",
+        name: "Sellora",
         description: `${data.planName} Subscription`,
         prefill: {
           email: data.email,

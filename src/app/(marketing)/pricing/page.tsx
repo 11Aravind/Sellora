@@ -5,7 +5,7 @@ import { PricingTable } from "@/features/plans/components/PricingTable";
 import { ShieldCheck, Zap, RefreshCw } from "lucide-react";
 
 export const metadata = {
-  title: "Pricing Plans | SaaS Commerce Kit",
+  title: "Pricing Plans | Sellora",
   description: "Transparent, flexible pricing for ambitious e-commerce brands and vendors. Start your 14-day free trial.",
 };
 

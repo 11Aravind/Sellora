@@ -1,4 +1,4 @@
-# SaaS Commerce Platform
+# Sellora - Multi-Tenant Commerce Platform
 
 A multi-tenant "create your own online store" platform, in the spirit of Shopify.
 Vendors sign up, pick a subscription plan (monthly or yearly, with an optional free trial),

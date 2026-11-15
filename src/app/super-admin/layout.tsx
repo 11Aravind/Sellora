@@ -91,7 +91,7 @@ export default async function SuperAdminLayout({
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-muted-foreground">Admin Portal</span>
             <span className="text-muted-foreground/40">/</span>
-            <span className="text-xs font-semibold text-foreground">SaaS Commerce Kit</span>
+            <span className="text-xs font-semibold text-foreground">Sellora</span>
           </div>
 
           <div className="flex items-center gap-3">

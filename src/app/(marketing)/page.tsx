@@ -3,7 +3,6 @@ import {
   ArrowRight,
   CheckCircle2,
   ShieldCheck,
-  Sparkles,
   Store,
   Zap,
 } from "lucide-react";
@@ -28,7 +27,7 @@ export default function MarketingHomePage() {
               <Store className="h-5 w-5" />
             </div>
             <span className="text-xl font-bold tracking-tight">
-              SaaS Commerce
+              Sellora
             </span>
           </div>
 
@@ -74,7 +73,6 @@ export default function MarketingHomePage() {
         <section className="from-background via-muted/20 to-background border-border/50 relative overflow-hidden border-b bg-gradient-to-b py-24 md:py-32">
           <div className="container mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
             <div className="border-primary/20 bg-primary/5 text-primary animate-in fade-in slide-in-from-top-4 mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-xs font-semibold duration-500">
-              <Sparkles className="h-3.5 w-3.5" />
               Next-Gen Multi-Tenant E-Commerce
             </div>
 
@@ -210,7 +208,7 @@ export default function MarketingHomePage() {
       {/* Footer */}
       <footer className="border-border bg-background border-t py-8">
         <div className="text-muted-foreground container mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 text-sm sm:flex-row">
-          <p>© 2026 SaaS Commerce Platform. All rights reserved.</p>
+          <p>© 2026 Sellora. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/privacy" className="hover:text-foreground">
               Privacy
